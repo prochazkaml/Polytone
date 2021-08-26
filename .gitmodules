@@ -1,0 +1,3 @@
+[submodule "MTPlayer"]
+	path = MTPlayer
+	url = https://github.com/prochazkaml/MTPlayer

@@ -1,0 +1,4 @@
+*.o
+polytone
+polytone.exe
+*.dll
