@@ -1,5 +1,6 @@
 #include "input.h"
 #include <string.h>
+#include "menu/file.h"
 #include "sdl.h"
 
 int mousex = 0, mousey = S_HEIGHT - 1;
@@ -11,8 +12,8 @@ void ParseMainInput() {
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 			case SDL_QUIT:
-				exit(0);
-//				break;		// I mean...
+				file_quit();				
+				break;
 
 			case SDL_MOUSEMOTION:
 				if(event.motion.x && event.motion.x < S_WIDTH)
