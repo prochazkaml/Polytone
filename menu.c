@@ -1,24 +1,9 @@
 #include "menu.h"
-
-void (*submenu_file_fn[])() = {
-	NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-void (*submenu_player_fn[])() = {
-	NULL, NULL, NULL
-};
-
-void (*submenu_edit_fn[])() = {
-	NULL, NULL, NULL, NULL, NULL, NULL
-};
-
-void (*submenu_track_fn[])() = {
-	NULL, NULL, NULL
-};
-
-void (*submenu_help_fn[])() = {
-	NULL, NULL
-};
+#include "menu/file.h"
+#include "menu/player.h"
+#include "menu/edit.h"
+#include "menu/track.h"
+#include "menu/help.h"
 
 void (**submenus_fn[])() = {
 	submenu_file_fn, submenu_player_fn, submenu_edit_fn,
@@ -34,57 +19,6 @@ menu_t topbar = {
 	{ C(13), 0, C(4), C(1), "Edit" },
 	{ C(18), 0, C(5), C(1), "Track" },
 	{ C(24), 0, C(4), C(1), "Help" }
-}};
-
-menu_t submenu_file = {
-	C(1), C(1), C(16), C(7), 7,
-	BLACK, WHITE, {
-	
-	{ 0, C(0), C(16), C(1), "New     [Ctrl+n]" },
-	{ 0, C(1), C(16), C(1), "Open    [Ctrl+o]" },
-	{ 0, C(2), C(16), C(1), "Save    [Ctrl+s]" },
-	{ 0, C(3), C(16), C(1), "Save as [Ctrl+S]" },
-	{ 0, C(4), C(16), C(1), "Export  [Ctrl+e]" },
-	{ 0, C(5), C(16), C(1), "Setup   [Ctrl+,]" },
-	{ 0, C(6), C(16), C(1), "Quit    [Ctrl+q]" },
-}};
-
-menu_t submenu_player = {
-	C(6), C(1), C(20), C(3), 3,
-	BLACK, WHITE, {
-	
-	{ 0, C(0), C(20), C(1), "Resume/Pause    [F5]" },
-	{ 0, C(1), C(20), C(1), "Play from start [F6]" },
-	{ 0, C(2), C(20), C(1), "Stop            [F8]" },
-}};
-
-menu_t submenu_edit = {
-	C(13), C(1), C(19), C(6), 6,
-	BLACK, WHITE, {
-	
-	{ 0, C(0), C(19), C(1), "Cut        [Ctrl+x]" },
-	{ 0, C(1), C(19), C(1), "Copy       [Ctrl+c]" },
-	{ 0, C(2), C(19), C(1), "Paste      [Ctrl+v]" },
-	{ 0, C(3), C(19), C(1), "Select all [Ctrl+a]" },
-	{ 0, C(4), C(25), C(1), "Octave down    [F9]" },
-	{ 0, C(5), C(25), C(1), "Octave up     [F10]" },
-}};
-
-menu_t submenu_track = {
-	C(18), C(1), C(24), C(3), 3,
-	BLACK, WHITE, {
-	
-	{ 0, C(0), C(24), C(1), "Add order entry    [F11]" },
-	{ 0, C(1), C(24), C(1), "Remove order entry [F12]" },
-	{ 0, C(2), C(24), C(1), "Add/remove channels" },
-}};
-
-menu_t submenu_help = {
-	C(24), C(1), C(14), C(2), 2,
-	BLACK, WHITE, {
-	
-	{ 0, C(0), C(14), C(1), "Manual    [F1]" },
-	{ 0, C(1), C(14), C(1), "About Polytone" },
 }};
 
 menu_t *submenus[] = {

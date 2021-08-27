@@ -1,3 +1,6 @@
+#ifndef menu_h	// This file would included many times at once when compiling menu.o
+#define menu_h
+
 #include <stdint.h>
 #include "sdl.h"
 
@@ -19,3 +22,5 @@ extern menu_t topbar, *submenus[];
 int CheckMenuBoundaries(int mousex, int mousey, menu_t *menu);
 void DrawMenu(SDL_Surface *surface, menu_t *menu);
 void SelectMenuItem(int category, int item);
+
+#endif
