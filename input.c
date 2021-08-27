@@ -33,7 +33,8 @@ void ParseMainInput() {
 		switch (event.type) {
 			case SDL_KEYDOWN:
 				for(int i = 0; i < n_shortcuts; i++) {
-					if((event.key.keysym.mod & shortcuts[i].mod) == shortcuts[i].mod &&
+					if(((event.key.keysym.mod & shortcuts[i].mod) == shortcuts[i].mod ||
+						((event.key.keysym.mod >> 1) & shortcuts[i].mod) == shortcuts[i].mod) &&
 						event.key.keysym.scancode == shortcuts[i].code) {
 						
 						shortcuts[i].fn();
