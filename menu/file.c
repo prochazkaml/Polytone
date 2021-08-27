@@ -1,4 +1,5 @@
 #include "file.h"
+#include "player.h"
 #include "../diskio.h"
 #include "../libs/tinyfiledialogs.h"
 
@@ -22,6 +23,8 @@ void (*submenu_file_fn[])() = {
 const char *extensions[2] = { "*.mon", "*.MON" };
 
 void file_open() {
+	player_stop();
+
 	char *filename = tinyfd_openFileDialog(
 		"Load Monotone module",
 		"",

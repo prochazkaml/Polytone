@@ -1,4 +1,7 @@
 #include "player.h"
+#include <SDL2/SDL.h>
+#include "../MTPlayer/mtplayer.h"
+#include "../diskio.h"
 
 menu_t submenu_player = {
 	C(6), C(1), C(20), C(3), 3,
@@ -10,6 +13,34 @@ menu_t submenu_player = {
 }};
 
 void (*submenu_player_fn[])() = {
-	NULL, NULL, NULL
+	player_resume_pause, player_restart, player_stop
 };
 
+void player_resume_pause() {
+	if(raw_mt != NULL) {
+		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
+			SDL_PauseAudio(0);
+			UpdateStatus("Playing.");
+		} else {
+			SDL_PauseAudio(1);
+			UpdateStatus("Paused.");
+		}
+	} else {
+		UpdateStatus("There is nothing to play.");
+	}
+}
+
+void player_restart() {
+	player_stop();
+	player_resume_pause();
+}
+
+void player_stop() {
+	if(raw_mt != NULL) {
+		SDL_PauseAudio(1);
+		MTPlayer_Init(raw_mt);
+		UpdateStatus("Stopped.");
+	} else {
+		UpdateStatus("There is nothing to stop.");
+	}
+}
