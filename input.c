@@ -1,7 +1,27 @@
 #include "input.h"
 #include <string.h>
 #include "menu/file.h"
+#include "menu/player.h"
+#include "menu/edit.h"
+#include "menu/track.h"
+#include "menu/help.h"
 #include "sdl.h"
+
+typedef struct {
+	SDL_Keymod mod;
+	SDL_Scancode code;
+	void (*fn)();
+} kbdshortcut_t;
+
+kbdshortcut_t shortcuts[] = {
+	{ KMOD_LCTRL, SDL_SCANCODE_O, file_open },
+	{ KMOD_LCTRL, SDL_SCANCODE_Q, file_quit },
+	{ 0, SDL_SCANCODE_F5, player_resume_pause },
+	{ 0, SDL_SCANCODE_F6, player_restart },
+	{ 0, SDL_SCANCODE_F8, player_stop },
+};
+
+#define n_shortcuts (sizeof(shortcuts) / sizeof(kbdshortcut_t))
 
 int mousex = 0, mousey = S_HEIGHT - 1;
 int tbopen = -1, tbsel = -1, e;
@@ -11,6 +31,17 @@ void ParseMainInput() {
 	
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
+			case SDL_KEYDOWN:
+				for(int i = 0; i < n_shortcuts; i++) {
+					if((event.key.keysym.mod & shortcuts[i].mod) == shortcuts[i].mod &&
+						event.key.keysym.scancode == shortcuts[i].code) {
+						
+						shortcuts[i].fn();
+					}
+				}
+				
+				break;
+
 			case SDL_QUIT:
 				file_quit();				
 				break;
