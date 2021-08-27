@@ -3,7 +3,7 @@
 #include "MTPlayer/mtplayer.h"
 #include "assets/font.h"
 #include "assets/intro.h"
-#include "lz4.h"
+#include "libs/lz4.h"
 #include "menu.h"
 
 SDL_Window *window;
