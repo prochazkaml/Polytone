@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "sdl.h"
 #include "MTPlayer/mtplayer.h"
-#include "font.h"
-#include "intro.h"
+#include "assets/font.h"
+#include "assets/intro.h"
 #include "lz4.h"
 #include "menu.h"
 
