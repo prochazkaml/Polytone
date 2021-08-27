@@ -39,7 +39,7 @@ void ParseMainInput() {
 						shortcuts[i].fn();
 					}
 				}
-				
+
 				break;
 
 			case SDL_QUIT:
@@ -126,7 +126,11 @@ void ParseMainInput() {
 	}
 }
 
-int selected = -1, selectedx, selectedw;
+int selected, selectedx, selectedw;
+
+void InitDialogInput() {
+	selected = -1;
+}
 
 int ParseDialogInput(dialogrender_t *dialog) {
 	SDL_Event event;
@@ -196,7 +200,6 @@ int ParseDialogInput(dialogrender_t *dialog) {
 					return dialog->dialog->buttons - 1;
 
 				if((i = selected) >= 0) {
-					selected = -1;
 					return i;
 				}
 

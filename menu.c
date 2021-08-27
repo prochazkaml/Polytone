@@ -205,6 +205,8 @@ int DrawDialog(dialog_t *dialog) {
 
 	// Wait for user input
 
+	InitDialogInput();
+
 	while(1) {
 		if((retval = ParseDialogInput(&render)) >= 0) break;
 
