@@ -22,7 +22,8 @@ SDL_AudioSpec sdl_audio = {
 };
 
 void audio_callback(void *data, uint8_t *stream, int len) {
-	MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq);
+	int samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
+	UpdateStatus("Playing %d.%02ds...", samples / 100, samples % 100);
 }
 
 void Init() {

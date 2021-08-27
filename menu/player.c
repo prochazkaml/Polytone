@@ -20,7 +20,6 @@ void player_resume_pause() {
 	if(raw_mt != NULL) {
 		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
 			SDL_PauseAudio(0);
-			UpdateStatus("Playing.");
 		} else {
 			SDL_PauseAudio(1);
 			UpdateStatus("Paused.");
