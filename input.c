@@ -161,7 +161,7 @@ int ParseDialogInput(dialogrender_t *dialog) {
 				   mousex >= (S_WIDTH + dialog->w) / 2 ||
 				   mousey < (S_HEIGHT - dialog->h) / 2 ||
 				   mousey >= (S_HEIGHT + dialog->h) / 2)
-					return 0;
+					return dialog->dialog->buttons - 1;
 
 				if((i = selected) >= 0) {
 					selected = -1;
