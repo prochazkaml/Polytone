@@ -105,11 +105,11 @@ void Clear(int x, int y, uint32_t bg, int px) {
 	SDL_FillRect(surface, &rect, bg);
 }
 
-void Invert(SDL_Surface *surface, int x, int y, uint32_t fg, uint32_t bg, int px) {
+void _Invert(SDL_Surface *surface, int x, int y, int h, uint32_t fg, uint32_t bg, int px) {
 	uint32_t mask = ~(fg & bg);
 	uint32_t *screen = (uint32_t*)surface->pixels;
 
-	for(int j = y; j < y + 8; j++) {
+	for(int j = y; j < y + h; j++) {
 		for(int i = x; i < x + px; i++) {
 			PIXEL(i, j) ^= mask;
 		}

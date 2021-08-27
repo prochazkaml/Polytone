@@ -1,4 +1,6 @@
 #include "menu.h"
+#include <string.h>
+#include "input.h"
 #include "menu/file.h"
 #include "menu/player.h"
 #include "menu/edit.h"
@@ -73,6 +75,151 @@ void DrawMenu(SDL_Surface *surface, menu_t *menu) {
 }
 
 void SelectMenuItem(int category, int item) {
+	static dialog_t na = {
+		DIALOG_SIMPLE,
+		"This function is not available yet",
+		1, { "Ok" }
+	};
+	
 	if(submenus_fn[category][item] != NULL)
 		submenus_fn[category][item]();
+	else
+		DrawDialog(&na);
+}
+
+void _DrawWindow(int w, int h) {
+	SDL_Rect rect = {
+		.x = (S_WIDTH - w) / 2 - 4,
+		.y = (S_HEIGHT - h) / 2 - 4,
+		.w = w + 8,
+		.h = h + 8
+	};
+
+	SDL_FillRect(subsurface, NULL, 0x80000000);
+
+	SDL_FillRect(subsurface, &rect, 0xFFFFFFFF);
+
+	rect.x += 2; rect.y += 2;
+	rect.w -= 4; rect.h -= 4;
+
+	SDL_FillRect(subsurface, &rect, 0xFF000000);
+
+	rect.x += 2; rect.y += 2;
+	rect.w -= 4; rect.h -= 4;
+
+	SDL_FillRect(subsurface, &rect, 0xFFFFFFFF);
+}
+
+void _DrawButton(int x, int y, char *text) {
+	SDL_Rect rect = {
+		.x = x, .y = y - 4,
+		.w = (strlen(text) + 2) * 8, .h = 16
+	};
+
+	SDL_FillRect(subsurface, &rect, BLACK);
+
+	rect.x += 2;
+	rect.y += 2;
+	rect.w -= 4;
+	rect.h -= 4;
+
+	SDL_FillRect(subsurface, &rect, WHITE);
+
+	_Printf(subsurface, x + 8, y, BLACK, "%s", text);
+}
+
+int DrawDialog(dialog_t *dialog) {
+	int w = 0, h = 16, bw = 0, pw, ph, x, y, retval; // h = 16 => make space for button(s)
+	char *text = malloc(strlen(dialog->text) + 1);
+	dialogrender_t render = { .dialog = dialog };
+
+	// Figure out the dialog box dimensions
+
+	// First, by looking at the dialog text
+
+	strcpy(text, dialog->text);
+
+	char *line = strtok(text, "\n");
+
+	while(line != NULL) {
+		if(strlen(line) * 8 > w) w = strlen(line) * 8;
+		h += 8;
+		line = strtok(NULL, "\n");
+	}
+
+	// Then by looking at all of the buttons
+
+	for(int i = 0; i < dialog->buttons; i++) {
+		bw += (strlen(dialog->button[i]) + 3) * 8;
+	}
+
+	bw -= 8;
+
+	if(bw > w) w = bw;
+
+	x = (S_WIDTH - w) / 2;
+	y = (S_HEIGHT - h) / 2;
+
+	pw = w + 16;
+	ph = h + 16;
+
+	render.w = pw + 8;	// 8 = borders
+	render.h = ph + 8;
+
+	// Fade in
+
+	SDL_FillRect(subsurface, NULL, 0x80000000);
+
+	for(int i = 1; i <= 10; i++) {
+		_DrawWindow(i * pw / 10, i * ph / 10);
+		RenderFrame();
+	}
+
+	// Draw the contents
+
+	strcpy(text, dialog->text);
+
+	line = strtok(text, "\n");
+
+	while(line != NULL) {
+		_Printf(subsurface, (S_WIDTH - strlen(line) * 8) / 2, y, BLACK, "%s", line);
+
+		y += 8;
+
+		line = strtok(NULL, "\n");
+	}
+
+	// Draw the buttons
+
+	y += 8;
+	x = (S_WIDTH - bw) / 2;
+
+	render.bx = x;
+	render.by = y;
+
+	for(int i = 0; i < dialog->buttons; i++) {
+		_DrawButton(x, y, dialog->button[i]);
+
+		x += (strlen(dialog->button[i]) + 3) * 8;
+	}
+
+	// Wait for user input
+
+	while(1) {
+		if((retval = ParseDialogInput(&render)) >= 0) break;
+
+		RenderFrame();
+	}
+
+	// Fade out
+
+	for(int i = 9; i >= 0; i--) {
+		_DrawWindow(i * pw / 10, i * ph / 10);
+		RenderFrame();
+	}
+
+	SDL_FillRect(subsurface, NULL, 0);
+	free(text);
+
+	return retval;
 }

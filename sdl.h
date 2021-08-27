@@ -24,9 +24,10 @@ void RenderFrame();
 
 void _Putchar(SDL_Surface *surface, uint8_t c, int x, int y, uint32_t color);
 void _Printf(SDL_Surface *surface, int x, int y, uint32_t color, const char *format, ...);
+void _Invert(SDL_Surface *surface, int x, int y, int h, uint32_t fg, uint32_t bg, int px);
 void Clear(int x, int y, uint32_t bg, int px);
-void Invert(SDL_Surface *surface, int x, int y, uint32_t fg, uint32_t bg, int px);
 
+#define Invert(s, x, y, ...)  _Invert(s, x, y, 8, __VA_ARGS__)
 #define Putchar(...) _Putchar(surface, __VA_ARGS__)
 #define Printf(...) _Printf(surface, __VA_ARGS__)
 #define UpdateStatus(...) \

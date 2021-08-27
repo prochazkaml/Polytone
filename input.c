@@ -1,18 +1,18 @@
 #include "input.h"
-#include "menu.h"
+#include <string.h>
 #include "sdl.h"
 
 int mousex = 0, mousey = S_HEIGHT - 1;
 int tbopen = -1, tbsel = -1, e;
 
-void ParseInput() {
+void ParseMainInput() {
 	SDL_Event event;
 	
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 			case SDL_QUIT:
 				exit(0);
-//					break;		// I mean...
+//				break;		// I mean...
 
 			case SDL_MOUSEMOTION:
 				if(event.motion.x && event.motion.x < S_WIDTH)
@@ -92,4 +92,85 @@ void ParseInput() {
 				break;
 		}
 	}
+}
+
+int selected = -1, selectedx, selectedw;
+
+int ParseDialogInput(dialogrender_t *dialog) {
+	SDL_Event event;
+	int i, bx, by, bx2, by2;
+
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+			case SDL_QUIT:
+				return dialog->dialog->buttons - 1;
+
+			case SDL_KEYDOWN:
+				switch(event.key.keysym.scancode) {
+					case SDL_SCANCODE_ESCAPE:
+						return dialog->dialog->buttons - 1;
+
+					case SDL_SCANCODE_RETURN:
+					case SDL_SCANCODE_SPACE:
+						return 0;
+				}
+
+				break;
+
+			case SDL_MOUSEMOTION:
+				if(event.motion.x && event.motion.x < S_WIDTH)
+					mousex = event.motion.x;
+
+				if(event.motion.y && event.motion.y < S_HEIGHT)
+					mousey = event.motion.y;
+
+				bx = dialog->bx, by = dialog->by - 4;
+				by2 = by + 16;
+
+				for(i = 0; i < dialog->dialog->buttons; i++) {
+					bx2 = bx + (strlen(dialog->dialog->button[i]) + 2) * 8;
+
+					if(mousex >= bx && mousex < bx2 && mousey >= by && mousey < by2) {
+						if(i != selected) {
+							if(selected >= 0) {
+								_Invert(subsurface, selectedx, by + 2, 12, BLACK, WHITE, selectedw);
+							}
+
+							selectedx = bx + 2;
+							selectedw = bx2 - bx - 4;
+							selected = i;
+
+							_Invert(subsurface, selectedx, by + 2, 12, BLACK, WHITE, selectedw);
+						}
+
+						break;
+					}
+					
+					bx += (strlen(dialog->dialog->button[i]) + 3) * 8;
+				}
+
+				if(i == dialog->dialog->buttons && selected >= 0) {
+					_Invert(subsurface, selectedx, by + 2, 12, BLACK, WHITE, selectedw);
+					selected = -1;
+				}
+
+				break;
+
+			case SDL_MOUSEBUTTONUP:
+				if(mousex < (S_WIDTH - dialog->w) / 2 ||
+				   mousex >= (S_WIDTH + dialog->w) / 2 ||
+				   mousey < (S_HEIGHT - dialog->h) / 2 ||
+				   mousey >= (S_HEIGHT + dialog->h) / 2)
+					return 0;
+
+				if((i = selected) >= 0) {
+					selected = -1;
+					return i;
+				}
+
+				break;
+		}
+	}
+
+	return -1;
 }
