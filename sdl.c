@@ -3,6 +3,7 @@
 #include "MTPlayer/mtplayer.h"
 #include "assets/font.h"
 #include "assets/intro.h"
+#include "assets/icon.h"
 #include "libs/lz4.h"
 #include "menu.h"
 
@@ -29,6 +30,11 @@ void Init() {
 
     window = SDL_CreateWindow("Polytone", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, S_WIDTH * VIDEO_SCALE, S_HEIGHT * VIDEO_SCALE, 0);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	SDL_Surface *icon_surface = NewSurface(128, 128);
+	lz4_uncompress(icon, icon_surface->pixels);
+	SDL_SetWindowIcon(window, icon_surface);
+	SDL_FreeSurface(icon_surface);
 
 	SDL_RenderSetLogicalSize(renderer, S_WIDTH, S_HEIGHT);
 	surface = NewSurface(S_WIDTH, S_HEIGHT);

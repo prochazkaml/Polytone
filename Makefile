@@ -6,7 +6,7 @@ objects = main.o sdl.o menu.o input.o diskio.o \
 	libs/lz4.o libs/tinyfiledialogs.o MTPlayer/mtplayer.o
 
 main.o: sdl.h input.h diskio.h
-sdl.o: sdl.h MTPlayer/mtplayer.h assets/font.h assets/intro.h menu.h libs/lz4.h
+sdl.o: sdl.h menu.h MTPlayer/mtplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
 menu.o: menu.h sdl.h
 input.o: input.h sdl.h menu.h
 diskio.o: diskio.h sdl.h MTPlayer/mtplayer.h
