@@ -129,6 +129,14 @@ void ParseMainInput() {
 int selected, selectedx, selectedw;
 
 void InitDialogInput() {
+	SDL_Event event;
+
+	event.type = SDL_MOUSEMOTION;
+	event.motion.x = mousex;
+	event.motion.y = mousey;
+
+	SDL_PushEvent(&event);
+
 	selected = -1;
 }
 
