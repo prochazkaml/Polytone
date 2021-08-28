@@ -98,7 +98,7 @@ void RenderTracker() {
 					if(tracker.order > 0)
 						DrawRow(y, tracker.order - 1, row + 64, status);
 				} else {
-					if(tracker.order < status->orders)
+					if(tracker.order < status->orders - 1)
 						DrawRow(y, tracker.order + 1, row - 64, status);
 				}
 
