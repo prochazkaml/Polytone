@@ -6,6 +6,7 @@
 #include "menu/track.h"
 #include "menu/help.h"
 #include "sdl.h"
+#include "tracker.h"
 
 typedef struct {
 	SDL_Keymod mod;
@@ -40,6 +41,8 @@ void ParseMainInput() {
 						shortcuts[i].fn();
 					}
 				}
+
+				ParseKey(event.key.keysym.mod, event.key.keysym.scancode);
 
 				break;
 

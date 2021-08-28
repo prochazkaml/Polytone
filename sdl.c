@@ -6,6 +6,8 @@
 #include "assets/icon.h"
 #include "libs/lz4.h"
 #include "menu.h"
+#include "diskio.h"
+#include "tracker.h"
 
 SDL_Window *window;
 SDL_Surface *surface, *subsurface;
@@ -22,8 +24,14 @@ SDL_AudioSpec sdl_audio = {
 };
 
 void audio_callback(void *data, uint8_t *stream, int len) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
 	int samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
 	UpdateStatus("Playing %d.%02ds...", samples / 100, samples % 100);
+
+	tracker.row = status->row;
+	tracker.order = status->order;
+	tracker.update = 1;
 }
 
 void Init() {
@@ -118,6 +126,8 @@ void _Invert(SDL_Surface *surface, int x, int y, int h, uint32_t fg, uint32_t bg
 }
 
 void RenderFrame() {
+	if(raw_mt != NULL) RenderTracker();
+
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
 

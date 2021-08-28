@@ -27,9 +27,9 @@ void _Printf(SDL_Surface *surface, int x, int y, uint32_t color, const char *for
 void _Invert(SDL_Surface *surface, int x, int y, int h, uint32_t fg, uint32_t bg, int px);
 void Clear(int x, int y, uint32_t bg, int px);
 
-#define Invert(s, x, y, ...)  _Invert(s, x, y, 8, __VA_ARGS__)
-#define Putchar(...) _Putchar(surface, __VA_ARGS__)
-#define Printf(...) _Printf(surface, __VA_ARGS__)
+#define Invert(s, x, y, fg, bg, px)  _Invert(s, x, y, 8, fg, bg, px)
+#define Putchar(c, x, y, color) _Putchar(surface, c, x, y, color)
+#define Printf(x, y, color, ...) _Printf(surface, x, y, color, __VA_ARGS__)
 #define UpdateStatus(...) \
 	Clear(0, STATUS_Y, STATUS_BG, S_WIDTH); \
 	Printf(8, STATUS_Y, WHITE, __VA_ARGS__)

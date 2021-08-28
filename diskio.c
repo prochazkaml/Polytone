@@ -2,6 +2,7 @@
 #include <libgen.h>
 #include "sdl.h"
 #include "diskio.h"
+#include "tracker.h"
 #include "MTPlayer/mtplayer.h"
 
 uint8_t *raw_mt = NULL;
@@ -34,6 +35,13 @@ int LoadMON(char *filename) {
 		UpdateStatus("%s is invalid!", basename(filename));
 		return 2;
 	}
+
+	tracker.row = 0;
+	tracker.order = 0;
+	tracker.octave = 3;
+	tracker.column = 0;
+	tracker.channel = 0;
+	tracker.update = 1;
 
 	UpdateStatus("%s loaded!", basename(filename));
 	return 0;
