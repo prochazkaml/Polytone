@@ -23,8 +23,6 @@ void (*submenu_file_fn[])() = {
 const char *extensions[2] = { "*.mon", "*.MON" };
 
 void file_open() {
-	player_stop();
-
 	char *filename = tinyfd_openFileDialog(
 		"Load Monotone module",
 		"",
@@ -34,6 +32,8 @@ void file_open() {
 		0);
 
 	if(filename) {
+		player_stop();
+
 		LoadMON(filename);
 	} else {
 		UpdateStatus("No file selected!");
