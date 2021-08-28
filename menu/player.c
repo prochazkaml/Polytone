@@ -30,8 +30,13 @@ void player_resume_pause() {
 }
 
 void player_restart() {
-	player_stop();
-	player_resume_pause();
+	if(raw_mt != NULL) {
+		SDL_PauseAudio(1);
+		MTPlayer_Init(raw_mt);
+		SDL_PauseAudio(0);
+	} else {
+		UpdateStatus("There is nothing to restart.");
+	}
 }
 
 void player_stop() {
