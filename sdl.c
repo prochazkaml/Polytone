@@ -13,6 +13,7 @@ SDL_Window *window;
 SDL_Surface *surface, *subsurface;
 SDL_Renderer *renderer;
 uint32_t *screen;
+int samples;
 
 int VIDEO_SCALE = 2;
 
@@ -26,8 +27,7 @@ SDL_AudioSpec sdl_audio = {
 void audio_callback(void *data, uint8_t *stream, int len) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
-	int samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
-	UpdateStatus("Playing %d.%02ds...", samples / 100, samples % 100);
+	samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
 
 	tracker.row = status->row;
 	tracker.order = status->order;

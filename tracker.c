@@ -5,8 +5,27 @@
 tracker_t tracker;
 
 void ParseKey(int mod, int scancode) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	printf("%d %d\n", mod, scancode);
+
 	if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
+		// Parse editor keys
+		
 		tracker.update = 1;
+	} else {
+		// Parse player keys
+
+		if((scancode >= SDL_SCANCODE_1 && scancode <= SDL_SCANCODE_0) ||
+			scancode == SDL_SCANCODE_MINUS || scancode == SDL_SCANCODE_EQUALS) {
+
+			if(scancode > SDL_SCANCODE_0)
+				scancode -= (SDL_SCANCODE_MINUS - 10);
+			else
+				scancode -= SDL_SCANCODE_1;
+
+			status->channel[scancode].enabled ^= 1;
+		}
 	}
 }
 
@@ -20,8 +39,6 @@ const uint32_t effectcolors[8] = {
 	0xFFFFB0B0, 0xFFB0FFFF, 0xFFB0FFFF, 0xFFB0FFFF, 
 	0xFFB0FFFF, 0xFFB0B0FF, 0xFFB0B0FF, 0xFFFFB0B0
 };
-
-#define TRACKERWIN_Y 8
 
 void DrawRow(int y, int order, int row, songstatus_t *status) {
 	Printf(8, y, WHITE, "%02X", row);
@@ -63,8 +80,12 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 	}
 }
 
+#define TRACKERWIN_Y 48
+#define BARWIDTH 2
+
 void RenderTracker() {
 	songstatus_t *status = MTPlayer_GetStatus();
+	SDL_Rect bar = { .x = 0, .y = TRACKERWIN_Y - BARWIDTH - 1, .w = S_WIDTH, .h = BARWIDTH};
 	SDL_Rect rect = { .x = 0, .y = 8, .w = S_WIDTH, .h = S_HEIGHT - 16 };
 	int rowy = (S_HEIGHT - 8 - TRACKERWIN_Y) / 16 * 8 + TRACKERWIN_Y;
 
@@ -78,6 +99,17 @@ void RenderTracker() {
 			SDL_FillRect(surface, &rect, 0xFF333333);
 
 			rect.x += 128;
+		}
+
+		for(int c = 0; c < status->channels; c++) {
+			int color = status->channel[c].enabled ? WHITE : 0xFF808080;
+			Printf(36 + c * 64, bar.y - 8, color, "Ch %d", c + 1);
+		}
+
+		SDL_FillRect(surface, &bar, 0xFFFFFFFF);
+
+		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
+			UpdateStatus("Playing %d.%02ds...", samples / 100, samples % 100);
 		}
 
 		for(int i = 0; i < S_WIDTH * 8; i++) {
