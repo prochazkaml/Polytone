@@ -83,6 +83,9 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 #define TRACKERWIN_Y 48
 #define BARWIDTH 2
 
+int ch_ctr[12] = { 0 };
+int old_ctr[12] = { 0 };
+
 void RenderTracker() {
 	songstatus_t *status = MTPlayer_GetStatus();
 	SDL_Rect bar = { .x = 0, .y = TRACKERWIN_Y - BARWIDTH - 1, .w = S_WIDTH, .h = BARWIDTH};
@@ -101,15 +104,41 @@ void RenderTracker() {
 			rect.x += 128;
 		}
 
-		for(int c = 0; c < status->channels; c++) {
-			int color = status->channel[c].enabled ? WHITE : 0xFF808080;
-			Printf(36 + c * 64, bar.y - 8, color, "Ch %d", c + 1);
-		}
+		Printf(8, 22, WHITE, "%02X", status->ordertable[status->order]);
 
 		SDL_FillRect(surface, &bar, 0xFFFFFFFF);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
-			UpdateStatus("Playing %d.%02ds...", samples / 100, samples % 100);
+			UpdateStatus("Playing %d.%02ds... (order %d/%d, speed %d)",
+				samples / 100, samples % 100, status->order + 1, status->orders, status->tempo);
+
+			for(int c = 0; c < status->channels; c++) {
+				int color = status->channel[c].enabled ? WHITE : 0xFF808080;
+				Printf(36 + c * 64, 12, color, "Ch %d", c + 1);
+				Printf(36 + c * 64, 22, color, status->channel[c].active ? "%d Hz" : "-", status->channel[c].freq);
+
+				int ctr = status->channel[c].ctr;
+
+				if(ctr != old_ctr[c] && ch_ctr[c] < 14) ch_ctr[c] = 14;
+
+				if(ch_ctr[c] < 0) ch_ctr[c] = 0;
+
+				if(ctr < old_ctr[c]) ch_ctr[c] = 27;
+
+				for(int x = 0; x < ch_ctr[c]; x++) {
+					for(int y = 0; y < 8; y++) {
+						PIXEL(37 + c * 64 + x * 2, 32 + y) = 
+							(x < 14) ? 0xFF00FF00 : ((x < 21) ? 0xFF00FFFF : 0xFF0000FF);
+					}
+				}
+
+				ch_ctr[c]--;
+				old_ctr[c] = ctr;
+			}
+		} else {
+			for(int c = 0; c < status->channels; c++) {
+				Printf(36 + c * 64, bar.y - 8, WHITE, "Ch %d", c + 1);
+			}
 		}
 
 		for(int i = 0; i < S_WIDTH * 8; i++) {

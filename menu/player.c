@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include "../MTPlayer/mtplayer.h"
 #include "../diskio.h"
+#include "../tracker.h"
 
 menu_t submenu_player = {
 	C(6), C(1), C(20), C(3), 3,
@@ -47,4 +48,6 @@ void player_stop() {
 	} else {
 		UpdateStatus("There is nothing to stop.");
 	}
+
+	tracker.update = 1;
 }
