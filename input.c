@@ -7,6 +7,7 @@
 #include "menu/help.h"
 #include "sdl.h"
 #include "tracker.h"
+#include "diskio.h"
 
 typedef struct {
 	SDL_Keymod mod;
@@ -48,7 +49,7 @@ void ParseMainInput() {
 					}
 				}
 
-				if(i == n_shortcuts)
+				if(i == n_shortcuts && raw_mt != NULL)
 					ParseKey(event.key.keysym.mod, event.key.keysym.scancode);
 
 				break;
