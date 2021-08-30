@@ -18,6 +18,8 @@ void (*submenu_track_fn[])() = {
 };
 
 void track_add_order() {
+	if(raw_mt == NULL) return;
+
 	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
 
@@ -37,6 +39,8 @@ void track_add_order() {
 }
 
 void track_remove_order() {
+	if(raw_mt == NULL) return;
+
 	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
 

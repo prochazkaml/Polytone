@@ -59,10 +59,14 @@ void Init() {
 	atexit(SDL_Quit);
 //	SDL_PauseAudio(0);
 
-	lz4_uncompress(intro, screen + S_WIDTH * 8);
+	DrawBG();
 
 	DrawMenu(surface, &topbar);
 	UpdateStatus("Welcome to Polytone!");
+}
+
+void DrawBG() {
+	lz4_uncompress(intro, screen + S_WIDTH * 8);
 }
 
 void RenderSurface(SDL_Surface *surface, int x, int y) {

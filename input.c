@@ -16,6 +16,7 @@ typedef struct {
 } kbdshortcut_t;
 
 kbdshortcut_t shortcuts[] = {
+	{ KMOD_LCTRL, SDL_SCANCODE_N, file_new },
 	{ KMOD_LCTRL, SDL_SCANCODE_O, file_open },
 	{ KMOD_LCTRL, SDL_SCANCODE_Q, file_quit },
 	{ 0, SDL_SCANCODE_F5, player_resume_pause },

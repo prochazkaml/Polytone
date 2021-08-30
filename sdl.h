@@ -19,6 +19,7 @@ extern int samples;
 #define PIXEL(x, y) screen[(x) + (y) * S_WIDTH]
 
 void Init();
+void DrawBG();
 void RenderSurface(SDL_Surface *surface, int x, int y);
 SDL_Surface *NewSurface(int w, int h);
 void RenderFrame();

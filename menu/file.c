@@ -17,10 +17,32 @@ menu_t submenu_file = {
 }};
 
 void (*submenu_file_fn[])() = {
-	NULL, file_open, NULL, NULL, NULL, NULL, file_quit
+	file_new, file_open, NULL, NULL, NULL, NULL, file_quit
 };
 
 const char *extensions[2] = { "*.mon", "*.MON" };
+
+void file_new() {
+	if(raw_mt != NULL) {
+		player_stop();
+	} else {
+		raw_mt = malloc(MAX_MT_SIZE);
+	}
+
+	memset(raw_mt, 0, MAX_MT_SIZE);
+
+	strcpy(raw_mt, "\x08MONOTONE");
+
+	raw_mt[0x5B] = 1;	// Version
+//	raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
+	raw_mt[0x5D] = 3;	// Channels
+	raw_mt[0x5E] = 2;	// Cell size
+	raw_mt[0x5F] = 0;
+	raw_mt[0x60] = 0xFF;
+
+	InitMON("New file");
+	lastname = NULL;
+}
 
 void file_open() {
 	char *filename = tinyfd_openFileDialog(
