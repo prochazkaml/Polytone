@@ -20,6 +20,8 @@ void (*submenu_player_fn[])() = {
 void player_resume_pause() {
 	if(raw_mt != NULL) {
 		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
+			memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
+			memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 			SDL_PauseAudio(0);
 		} else {
 			SDL_PauseAudio(1);
@@ -34,6 +36,8 @@ void player_restart() {
 	if(raw_mt != NULL) {
 		SDL_PauseAudio(1);
 		MTPlayer_Init(raw_mt);
+		memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
+		memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 		SDL_PauseAudio(0);
 	} else {
 		UpdateStatus("There is nothing to restart.");
