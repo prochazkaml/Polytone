@@ -7,11 +7,63 @@ tracker_t tracker;
 void ParseKey(int mod, int scancode) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
-	printf("%d %d\n", mod, scancode);
-
 	if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
 		// Parse editor keys
 		
+		switch(scancode) {
+			case SDL_SCANCODE_UP:
+				if(tracker.row == 0 && tracker.order > 0) {
+					tracker.order--;
+					tracker.row = 0x3F;
+				} else if(tracker.row > 0) {
+					tracker.row--;
+				} else {
+					tracker.order = status->orders - 1;
+					tracker.row = 0x3F;
+				}
+				
+				break;
+				
+			case SDL_SCANCODE_DOWN:
+				if(tracker.row == 0x3F && tracker.order < status->orders - 1) {
+					tracker.order++;
+					tracker.row = 0;
+				} else if(tracker.row < 0x3F) {
+					tracker.row++;
+				} else {
+					tracker.order = 0;
+					tracker.row = 0;
+				}
+				
+				break;
+
+			case SDL_SCANCODE_PAGEUP:
+				if(tracker.order > 0) {
+					tracker.order--;
+				} else {
+					tracker.order = status->orders - 1;
+				}
+
+				break;
+				
+			case SDL_SCANCODE_PAGEDOWN:
+				if(tracker.order < status->orders - 1) {
+					tracker.order++;
+				} else {
+					tracker.order = 0;
+				}
+
+				break;
+				
+			case SDL_SCANCODE_HOME:
+				tracker.row = 0;
+				break;
+
+			case SDL_SCANCODE_END:
+				tracker.row = 0x3F;
+				break;
+		}
+
 		tracker.update = 1;
 	} else {
 		// Parse player keys
@@ -108,8 +160,8 @@ void RenderTracker() {
 		Printf(8, 23, WHITE, "%02X", status->ordertable[tracker.order]);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
-			UpdateStatus("Playing %d.%02ds... (order %d/%d, speed %d)",
-				samples / 100, samples % 100, status->order + 1, status->orders, status->tempo);
+			UpdateStatus("Playing %d.%02ds @ speed %d...",
+				samples / 100, samples % 100, status->tempo);
 
 			for(int c = 0; c < status->channels; c++) {
 				int color = status->channel[c].enabled ? WHITE : 0xFF808080;
