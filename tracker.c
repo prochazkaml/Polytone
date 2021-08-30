@@ -4,55 +4,102 @@
 
 tracker_t tracker;
 
+uint8_t notekeys[] = {
+	SDL_SCANCODE_Z, SDL_SCANCODE_S,
+	SDL_SCANCODE_X, SDL_SCANCODE_D,
+	SDL_SCANCODE_C,
+	SDL_SCANCODE_V, SDL_SCANCODE_G,
+	SDL_SCANCODE_B, SDL_SCANCODE_H,
+	SDL_SCANCODE_N, SDL_SCANCODE_J,
+	SDL_SCANCODE_M,
+
+	SDL_SCANCODE_Q, SDL_SCANCODE_2,
+	SDL_SCANCODE_W, SDL_SCANCODE_3,
+	SDL_SCANCODE_E,
+	SDL_SCANCODE_R, SDL_SCANCODE_5,
+	SDL_SCANCODE_T, SDL_SCANCODE_6,
+	SDL_SCANCODE_Y, SDL_SCANCODE_7,
+	SDL_SCANCODE_U,
+
+	SDL_SCANCODE_I, SDL_SCANCODE_9,
+	SDL_SCANCODE_O, SDL_SCANCODE_0,
+	SDL_SCANCODE_P,
+	SDL_SCANCODE_LEFTBRACKET, SDL_SCANCODE_EQUALS,
+	SDL_SCANCODE_RIGHTBRACKET
+};
+
+void MoveCursor(int amount) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	tracker.row += amount;
+
+	if(amount > 0) {
+		while(tracker.row >= 0x40) {
+			tracker.row -= 0x40;
+			tracker.order++;
+
+			if(tracker.order >= status->orders) tracker.order = 0; 
+		}
+	} else if(amount < 0) {
+		while(tracker.row < 0) {
+			tracker.row += 0x40;
+			tracker.order--;
+
+			if(tracker.order < 0) tracker.order = status->orders - 1;
+		}
+	}
+}
+
+void InsertNote(int note) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr = (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
+
+	uint16_t data = status->data[ptr];
+
+	data &= 0x1FF;
+	data |= note << 9;
+
+	status->data[ptr] = data;
+
+	MoveCursor(1);
+}
+
 void ParseKey(int mod, int scancode) {
 	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr;
+
+	printf("%d %d\n", mod, scancode);
 
 	if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
 		// Parse editor keys
 		
 		switch(scancode) {
 			case SDL_SCANCODE_UP:
-				if(tracker.row == 0 && tracker.order > 0) {
-					tracker.order--;
-					tracker.row = 0x3F;
-				} else if(tracker.row > 0) {
-					tracker.row--;
-				} else {
-					tracker.order = status->orders - 1;
-					tracker.row = 0x3F;
-				}
-				
+				MoveCursor((mod & KMOD_CTRL) ? (-16) : (-1));
 				break;
 				
 			case SDL_SCANCODE_DOWN:
-				if(tracker.row == 0x3F && tracker.order < status->orders - 1) {
-					tracker.order++;
-					tracker.row = 0;
-				} else if(tracker.row < 0x3F) {
-					tracker.row++;
-				} else {
-					tracker.order = 0;
-					tracker.row = 0;
-				}
-				
+				MoveCursor((mod & KMOD_CTRL) ? 16 : 1);
+				break;
+
+			case SDL_SCANCODE_LEFT:
+				tracker.channel--;
+				if(tracker.channel < 0) tracker.channel = status->channels - 1;
+				break;
+
+			case SDL_SCANCODE_RIGHT:
+				tracker.channel++;
+				if(tracker.channel >= status->channels) tracker.channel = 0;
 				break;
 
 			case SDL_SCANCODE_PAGEUP:
-				if(tracker.order > 0) {
-					tracker.order--;
-				} else {
-					tracker.order = status->orders - 1;
-				}
-
+				MoveCursor(-64);
 				break;
 				
 			case SDL_SCANCODE_PAGEDOWN:
-				if(tracker.order < status->orders - 1) {
-					tracker.order++;
-				} else {
-					tracker.order = 0;
-				}
-
+				MoveCursor(64);
 				break;
 				
 			case SDL_SCANCODE_HOME:
@@ -62,6 +109,43 @@ void ParseKey(int mod, int scancode) {
 			case SDL_SCANCODE_END:
 				tracker.row = 0x3F;
 				break;
+
+			case SDL_SCANCODE_SPACE:
+				InsertNote(0x7F);
+				break;
+
+			case SDL_SCANCODE_BACKSPACE:
+				InsertNote(0);
+				break;
+
+			case SDL_SCANCODE_DELETE:
+				ptr = (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
+
+				for(int i = tracker.row; i < 0x3F; i++) {
+					status->data[ptr] = status->data[ptr + status->channels];
+					ptr += status->channels;
+				}
+
+				status->data[ptr] = 0;
+				break;
+
+			case SDL_SCANCODE_F9:
+				if(tracker.octave > 0) tracker.octave--;
+				break;
+
+			case SDL_SCANCODE_F10:
+				if(tracker.octave < 9) tracker.octave++;
+				break;
+		}
+
+		// Parse note keys
+
+		for(int i = 0; i < sizeof(notekeys); i++) {
+			if(scancode == notekeys[i]) {
+				int note = i + tracker.octave * 12 - 8;
+				if(note && note <= 88) InsertNote(note);
+				break;
+			}
 		}
 
 		tracker.update = 1;
@@ -103,7 +187,7 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 		int v = data & 63;
 
 		if(n == 127) {
-			Printf(36 + c * 64, y, 0xFF7777BB, "OFF");
+			Printf(36 + c * 64, y, 0xFF8080FF, "OFF");
 		} else if(n) {
 			if(e != 3)
 				Printf(36 + c * 64, y, WHITE, "%s%d",
@@ -157,6 +241,10 @@ void RenderTracker() {
 			rect.x += 128;
 		}
 
+		for(int i = 0; i < S_WIDTH * 8; i++) {
+			PIXEL(i, MIDDLEROW_Y) += 0x303030;
+		}
+
 		Printf(8, 23, WHITE, "%02X", status->ordertable[tracker.order]);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
@@ -191,10 +279,17 @@ void RenderTracker() {
 				Printf(36 + c * 64, 13, WHITE, "Ch %d", c + 1);
 				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
 			}
-		}
 
-		for(int i = 0; i < S_WIDTH * 8; i++) {
-			PIXEL(i, MIDDLEROW_Y) += 0x303030;
+			for(int y = MIDDLEROW_Y; y < MIDDLEROW_Y + 8; y++) {
+				for(int x = 0; x < 2; x++) {
+					PIXEL(x + 32 + tracker.channel * 64, y) = WHITE;
+					PIXEL(x + 94 + tracker.channel * 64, y) = WHITE;
+				}
+
+				for(int x = 0; x < 60; x++) {
+					PIXEL(x + 34 + tracker.channel * 64, y) += 0x202020;
+				}
+			}
 		}
 
 		int row = tracker.row - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
@@ -227,8 +322,8 @@ void RenderTracker() {
 		SDL_FillRect(surface, &orderbar, WHITE);
 
 		Printf(TRACKERWIN_W + 5, 13, WHITE, "Order");
-		Printf(TRACKERWIN_W + 5, 23, WHITE, "table");
-		Printf(TRACKERWIN_W + 5, 33, WHITE, "%02X/%02X", tracker.order, status->orders);
+		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, status->orders);
+		Printf(TRACKERWIN_W + 5, 33, WHITE, "Oct:%d", tracker.octave);
 
 		int order = tracker.order - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
 

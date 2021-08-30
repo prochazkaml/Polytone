@@ -13,6 +13,26 @@ menu_t submenu_edit = {
 }};
 
 void (*submenu_edit_fn[])() = {
-	NULL, NULL, NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL, edit_octave_down, edit_octave_up
 };
+
+void edit_octave_down() {
+	SDL_Event event;
+
+	event.type = SDL_KEYDOWN;
+	event.key.keysym.scancode = SDL_SCANCODE_F9;
+	event.key.keysym.mod = 0;
+
+	SDL_PushEvent(&event);
+}
+
+void edit_octave_up() {
+	SDL_Event event;
+
+	event.type = SDL_KEYDOWN;
+	event.key.keysym.scancode = SDL_SCANCODE_F10;
+	event.key.keysym.mod = 0;
+
+	SDL_PushEvent(&event);
+}
 

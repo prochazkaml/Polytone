@@ -29,20 +29,25 @@ int tbopen = -1, tbsel = -1, e;
 
 void ParseMainInput() {
 	SDL_Event event;
+
+	int i;
 	
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 			case SDL_KEYDOWN:
-				for(int i = 0; i < n_shortcuts; i++) {
+				for(i = 0; i < n_shortcuts; i++) {
 					if(((event.key.keysym.mod & shortcuts[i].mod) == shortcuts[i].mod ||
 						((event.key.keysym.mod >> 1) & shortcuts[i].mod) == shortcuts[i].mod) &&
 						event.key.keysym.scancode == shortcuts[i].code) {
 						
 						shortcuts[i].fn();
+
+						break;
 					}
 				}
 
-				ParseKey(event.key.keysym.mod, event.key.keysym.scancode);
+				if(i == n_shortcuts)
+					ParseKey(event.key.keysym.mod, event.key.keysym.scancode);
 
 				break;
 
