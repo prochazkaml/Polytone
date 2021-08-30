@@ -20,6 +20,8 @@ kbdshortcut_t shortcuts[] = {
 	{ 0, SDL_SCANCODE_F5, player_resume_pause },
 	{ 0, SDL_SCANCODE_F6, player_restart },
 	{ 0, SDL_SCANCODE_F8, player_stop },
+	{ 0, SDL_SCANCODE_F11, track_add_order },
+	{ 0, SDL_SCANCODE_F12, track_remove_order },
 };
 
 #define n_shortcuts (sizeof(shortcuts) / sizeof(kbdshortcut_t))

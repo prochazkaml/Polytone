@@ -8,5 +8,7 @@ typedef struct {
 
 extern tracker_t tracker;
 
+void MoveCursor(int amount);
+void InsertNote(int note);
 void ParseKey(int mod, int scancode);
 void RenderTracker();

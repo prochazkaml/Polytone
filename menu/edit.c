@@ -1,4 +1,5 @@
 #include "edit.h"
+#include "../tracker.h"
 
 menu_t submenu_edit = {
 	C(13), C(1), C(19), C(6), 6,
@@ -17,22 +18,16 @@ void (*submenu_edit_fn[])() = {
 };
 
 void edit_octave_down() {
-	SDL_Event event;
-
-	event.type = SDL_KEYDOWN;
-	event.key.keysym.scancode = SDL_SCANCODE_F9;
-	event.key.keysym.mod = 0;
-
-	SDL_PushEvent(&event);
+	if(tracker.octave > 0) {
+		tracker.octave--;
+		tracker.update = 1;
+	}
 }
 
 void edit_octave_up() {
-	SDL_Event event;
-
-	event.type = SDL_KEYDOWN;
-	event.key.keysym.scancode = SDL_SCANCODE_F10;
-	event.key.keysym.mod = 0;
-
-	SDL_PushEvent(&event);
+	if(tracker.octave < 9) {
+		tracker.octave++;
+		tracker.update = 1;
+	}
 }
 

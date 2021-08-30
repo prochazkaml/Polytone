@@ -10,11 +10,11 @@ sdl.o: sdl.h menu.h diskio.h tracker.h MTPlayer/mtplayer.h assets/font.h assets/
 menu.o: menu.h sdl.h input.h
 input.o: input.h sdl.h menu.h tracker.h
 diskio.o: diskio.h sdl.h tracker.h MTPlayer/mtplayer.h
-tracker.o: tracker.h sdl.h MTPlayer/mtplayer.h
+tracker.o: tracker.h sdl.h MTPlayer/mtplayer.h diskio.h
 menu/file.o: menu/file.h menu/player.h menu.h diskio.h libs/tinyfiledialogs.h
 menu/player.o: menu/player.h menu.h diskio.h tracker.h MTPlayer/mtplayer.h
-menu/edit.o: menu/edit.h menu.h
-menu/track.o: menu/track.h menu.h
+menu/edit.o: menu/edit.h menu.h tracker.h
+menu/track.o: menu/track.h menu.h tracker.h diskio.h MTPlayer/mtplayer.h menu/player.h
 menu/help.o: menu/help.h menu.h
 libs/tinyfiledialogs.o: libs/tinyfiledialogs.h
 libs/lz4.o: libs/lz4.h

@@ -1,5 +1,6 @@
 #include "tracker.h"
 #include "sdl.h"
+#include "diskio.h"
 #include "MTPlayer/mtplayer.h"
 
 tracker_t tracker;
@@ -85,13 +86,30 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_LEFT:
-				tracker.channel--;
-				if(tracker.channel < 0) tracker.channel = status->channels - 1;
+				if(mod & KMOD_CTRL) {
+					if(raw_mt[0x5F + tracker.order] > 0)
+						raw_mt[0x5F + tracker.order]--;
+
+					MTPlayer_Init(raw_mt);
+				} else {
+					tracker.channel--;
+					if(tracker.channel < 0)
+						tracker.channel = status->channels - 1;
+				}
+
 				break;
 
 			case SDL_SCANCODE_RIGHT:
-				tracker.channel++;
-				if(tracker.channel >= status->channels) tracker.channel = 0;
+				if(mod & KMOD_CTRL) {
+					if(raw_mt[0x5F + tracker.order] < 0xFF)
+						raw_mt[0x5F + tracker.order]++;
+
+					MTPlayer_Init(raw_mt);
+				} else {
+					tracker.channel++;
+					if(tracker.channel >= status->channels) tracker.channel = 0;
+				}
+
 				break;
 
 			case SDL_SCANCODE_PAGEUP:
@@ -136,6 +154,7 @@ void ParseKey(int mod, int scancode) {
 			case SDL_SCANCODE_F10:
 				if(tracker.octave < 9) tracker.octave++;
 				break;
+
 		}
 
 		// Parse note keys
