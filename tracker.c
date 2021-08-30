@@ -60,7 +60,7 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 				Printf(36 + c * 64, y, effectcolors[3], "%s%d",
 					notes[(n + 8) % 12], (n + 8) / 12);
 		} else {
-			Printf(36 + c * 64, y, 0xFF777777, "---");
+			Printf(36 + c * 64, y, 0xFF808080, "---");
 		}
 
 		uint32_t color = effectcolors[e];
@@ -75,19 +75,23 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 				Printf(76 + c * 64, y, color, "%02X", v);
 			}
 		} else {
-			Printf(68 + c * 64, y, 0xFF777777, "---");
+			Printf(68 + c * 64, y, 0xFF808080, "---");
 		}
 	}
 }
 
 #define TRACKERWIN_Y 48
 #define BARWIDTH 2
+#define ORDERWIDTH 48
+#define TRACKERWIN_W (S_WIDTH - ORDERWIDTH)
+#define MIDDLEROW_Y (S_HEIGHT - 8 - TRACKERWIN_Y) / 16 * 8 + TRACKERWIN_Y
 
 void RenderTracker() {
 	songstatus_t *status = MTPlayer_GetStatus();
 	SDL_Rect bar = { .x = 0, .y = TRACKERWIN_Y - BARWIDTH - 1, .w = S_WIDTH, .h = BARWIDTH};
-	SDL_Rect rect = { .x = 0, .y = 8, .w = S_WIDTH, .h = S_HEIGHT - 16 };
-	int rowy = (S_HEIGHT - 8 - TRACKERWIN_Y) / 16 * 8 + TRACKERWIN_Y;
+	SDL_Rect rect = { .x = 0, .y = 8, .w = TRACKERWIN_W, .h = S_HEIGHT - 16 };
+	SDL_Rect order = { .x = TRACKERWIN_W, .y = 8, .w = ORDERWIDTH, .h = S_HEIGHT - 16 };
+	SDL_Rect orderbar = { .x = TRACKERWIN_W, .y = 8, .w = BARWIDTH, .h = S_HEIGHT - 16 };
 
 	if(tracker.update) {
 		SDL_FillRect(surface, &rect, 0xFF222222);
@@ -95,28 +99,17 @@ void RenderTracker() {
 		rect.x = 32;
 		rect.w = 64;
 
-		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
-			rect.y = TRACKERWIN_Y - 2 * BARWIDTH - 10;	// Just... don't ask.
-			rect.h = S_HEIGHT - TRACKERWIN_Y + 6;
-		}
-
-		while(rect.x < S_WIDTH) {
+		while(rect.x < TRACKERWIN_W) {
 			SDL_FillRect(surface, &rect, 0xFF333333);
 
 			rect.x += 128;
 		}
 
-		SDL_FillRect(surface, &bar, 0xFFFFFFFF);
+		Printf(8, 23, WHITE, "%02X", status->ordertable[tracker.order]);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
 			UpdateStatus("Playing %d.%02ds... (order %d/%d, speed %d)",
 				samples / 100, samples % 100, status->order + 1, status->orders, status->tempo);
-
-			bar.y = 8;
-
-			SDL_FillRect(surface, &bar, 0xFFFFFFFF);
-
-			Printf(8, 22, WHITE, "%02X", status->ordertable[tracker.order]);
 
 			for(int c = 0; c < status->channels; c++) {
 				int color = status->channel[c].enabled ? WHITE : 0xFF808080;
@@ -132,7 +125,7 @@ void RenderTracker() {
 				if(ctr < tracker.old_ctr[c]) tracker.ch_ctr[c] = 27;
 
 				for(int x = 0; x < tracker.ch_ctr[c]; x++) {
-					for(int y = 0; y < 8; y++) {
+					for(int y = 0; y < 7; y++) {
 						PIXEL(37 + c * 64 + x * 2, 33 + y) = 
 							(x < 14) ? 0xFF00FF00 : ((x < 21) ? 0xFF00FFFF : 0xFF0000FF);
 					}
@@ -142,21 +135,14 @@ void RenderTracker() {
 				tracker.old_ctr[c] = ctr;
 			}
 		} else {
-			Printf(8, bar.y - 8, WHITE, "%02X", status->ordertable[tracker.order]);
-
 			for(int c = 0; c < status->channels; c++) {
-				Printf(36 + c * 64, bar.y - 8, WHITE, "Ch %d", c + 1);
+				Printf(36 + c * 64, 13, WHITE, "Ch %d", c + 1);
+				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
 			}
-
-			bar.y -= (9 + bar.h);
-
-			SDL_FillRect(surface, &bar, 0xFFFFFFFF);
-
-
 		}
 
 		for(int i = 0; i < S_WIDTH * 8; i++) {
-			PIXEL(i, rowy) += 0x303030;
+			PIXEL(i, MIDDLEROW_Y) += 0x303030;
 		}
 
 		int row = tracker.row - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
@@ -184,6 +170,26 @@ void RenderTracker() {
 
 			row++;
 		}
+
+		SDL_FillRect(surface, &order, 0xFF222222);
+		SDL_FillRect(surface, &orderbar, WHITE);
+
+		Printf(TRACKERWIN_W + 5, 13, WHITE, "Order");
+		Printf(TRACKERWIN_W + 5, 23, WHITE, "table");
+		Printf(TRACKERWIN_W + 5, 33, WHITE, "%02X/%02X", tracker.order, status->orders);
+
+		int order = tracker.order - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
+
+		for(int y = TRACKERWIN_Y; y < S_HEIGHT - 8; y += 8) {
+			if(order >= 0 && order < status->orders) {
+				Printf(TRACKERWIN_W + 5, y, (order == tracker.order) ? WHITE : 0xFF808080,
+					"%02X:%02X", order, status->ordertable[order]);
+			}
+
+			order++;
+		}
+
+		SDL_FillRect(surface, &bar, 0xFFFFFFFF);
 
 		tracker.update = 0;
 	}
