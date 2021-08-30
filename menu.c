@@ -132,6 +132,8 @@ int DrawDialog(dialog_t *dialog) {
 	int w = 0, h = 16, bw = 0, pw, ph, x, y, retval; // h = 16 => make space for button(s)
 	char *text = malloc(strlen(dialog->text) + 1);
 	dialogrender_t render = { .dialog = dialog };
+	SDL_Rect outernumfield = { .w = 32 + 4, .h = 8 + 5 };
+	SDL_Rect innernumfield = { .w = 32, .h = 8 + 1 };
 
 	// Figure out the dialog box dimensions
 
@@ -182,6 +184,27 @@ int DrawDialog(dialog_t *dialog) {
 	line = strtok(text, "\n");
 
 	while(line != NULL) {
+		// Check for number input field
+
+		if(dialog->type == DIALOG_NUMBERINPUT) {
+			char *tag = strstr(line, "%%%%");
+
+			if(tag != NULL) {
+				innernumfield.x = render.nx = (S_WIDTH - strlen(line) * 8) / 2 + C(tag - line);
+				innernumfield.y = render.ny = y;
+				innernumfield.y--;
+
+				outernumfield.x = render.nx - 2;
+				outernumfield.y = render.ny - 3;
+
+				render.cur = dialog->text[strlen(dialog->text) + 1];
+				render.min = dialog->text[strlen(dialog->text) + 2];
+				render.max = dialog->text[strlen(dialog->text) + 3];
+
+				printf("%d %d %d\n", render.cur, render.min, render.max);
+			}
+		}
+
 		_Printf(subsurface, (S_WIDTH - strlen(line) * 8) / 2, y, BLACK, "%s", line);
 
 		y += 8;
@@ -210,6 +233,14 @@ int DrawDialog(dialog_t *dialog) {
 	while(1) {
 		if((retval = ParseDialogInput(&render)) >= 0) break;
 
+		// Draw the number field, if necessary
+
+		if(dialog->type == DIALOG_NUMBERINPUT) {
+			SDL_FillRect(subsurface, &outernumfield, BLACK);
+			SDL_FillRect(subsurface, &innernumfield, WHITE);
+			_Printf(subsurface, innernumfield.x, innernumfield.y + 1, BLACK, "% 4d", render.cur);
+		}
+
 		RenderFrame();
 	}
 
@@ -222,6 +253,12 @@ int DrawDialog(dialog_t *dialog) {
 
 	SDL_FillRect(subsurface, NULL, 0);
 	free(text);
+
+	// Set the return value for the number field
+
+	if(dialog->type == DIALOG_NUMBERINPUT) {
+		dialog->buttons = render.cur;
+	}
 
 	return retval;
 }

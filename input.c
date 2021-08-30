@@ -170,6 +170,30 @@ int ParseDialogInput(dialogrender_t *dialog) {
 					case SDL_SCANCODE_RETURN:
 					case SDL_SCANCODE_SPACE:
 						return 0;
+
+					case SDL_SCANCODE_UP:
+						if(dialog->dialog->type == DIALOG_NUMBERINPUT &&
+							dialog->cur < dialog->max) dialog->cur++;
+						
+						break;
+
+					case SDL_SCANCODE_DOWN:
+						if(dialog->dialog->type == DIALOG_NUMBERINPUT &&
+							dialog->cur > dialog->min) dialog->cur--;
+						
+						break;
+
+					case SDL_SCANCODE_HOME:
+						if(dialog->dialog->type == DIALOG_NUMBERINPUT)
+							dialog->cur = dialog->min;
+
+						break;						
+
+					case SDL_SCANCODE_END:
+						if(dialog->dialog->type == DIALOG_NUMBERINPUT)
+							dialog->cur = dialog->max;
+
+						break;						
 				}
 
 				break;

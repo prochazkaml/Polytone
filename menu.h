@@ -32,9 +32,11 @@ typedef struct {
 	dialog_t *dialog;
 	int w, h;
 	int bx, by;
+	int nx, ny;
+	uint8_t cur, min, max;
 } dialogrender_t;
 
-#define C(x) (x * 8)
+#define C(x) ((x) * 8)
 
 extern menu_t topbar, *submenus[];
 

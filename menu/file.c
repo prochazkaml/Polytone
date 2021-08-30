@@ -23,28 +23,63 @@ void (*submenu_file_fn[])() = {
 const char *extensions[2] = { "*.mon", "*.MON" };
 
 void file_new() {
+	static dialog_t sure = {
+		DIALOG_SIMPLE,
+		"Are you sure you want to create a new file?\n \n"
+		"Any unsaved data will be lost!",
+		2, { "Go ahead", "Cancel" }
+	};
+
 	if(raw_mt != NULL) {
-		player_stop();
-	} else {
-		raw_mt = malloc(MAX_MT_SIZE);
+		if(DrawDialog(&sure)) return;
 	}
 
-	memset(raw_mt, 0, MAX_MT_SIZE);
+	static dialog_t dialog = {
+		DIALOG_NUMBERINPUT,
+		"Number of channels: %%%%\n \n"
+		"Use the \x7F/\x80 arrow keys to select.\n \n"
+		"Ranges from 1 to 12."
+		"\0\x03\x01\x0C",	// Parameters: default val 3, min 1, max 12
+		2, { "Ok", "Cancel" }
+	};
 
-	strcpy(raw_mt, "\x08MONOTONE");
+	dialog.buttons = 2;		// DrawDialog() changes it
 
-	raw_mt[0x5B] = 1;	// Version
-//	raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
-	raw_mt[0x5D] = 3;	// Channels
-	raw_mt[0x5E] = 2;	// Cell size
-	raw_mt[0x5F] = 0;
-	raw_mt[0x60] = 0xFF;
+	if(!DrawDialog(&dialog)) {
+		if(raw_mt != NULL) {
+			player_stop();
+		} else {
+			raw_mt = malloc(MAX_MT_SIZE);
+		}
 
-	InitMON("New file");
-	lastname = NULL;
+		memset(raw_mt, 0, MAX_MT_SIZE);
+
+		strcpy(raw_mt, "\x08MONOTONE");
+
+		raw_mt[0x5B] = 1;	// Version
+//		raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
+		raw_mt[0x5D] = dialog.buttons;	// Channels
+		raw_mt[0x5E] = 2;	// Cell size
+		raw_mt[0x5F] = 0;
+		raw_mt[0x60] = 0xFF;
+
+		InitMON("New file");
+		lastname = NULL;
+	}
 }
 
 void file_open() {
+	static dialog_t sure = {
+		DIALOG_SIMPLE,
+		"Are you sure you want to open another file?\n \n"
+		"Any unsaved data will be lost!",
+		2, { "Go ahead", "Cancel" }
+	};
+
+	if(raw_mt != NULL) {
+		if(DrawDialog(&sure)) return;
+	}
+
 	char *filename = tinyfd_openFileDialog(
 		"Load Monotone module",
 		"",
