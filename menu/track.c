@@ -18,7 +18,10 @@ void (*submenu_track_fn[])() = {
 };
 
 void track_add_order() {
+	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
+
+	if(status->orders == 0xFF) return;
 
 	player_stop();
 
@@ -34,7 +37,10 @@ void track_add_order() {
 }
 
 void track_remove_order() {
+	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
+
+	if(status->orders == 1) return;
 
 	player_stop();
 
