@@ -4,7 +4,7 @@
 #include "../libs/tinyfiledialogs.h"
 
 menu_t submenu_file = {
-	C(1), C(1), C(16), C(7), 7,
+	C(1), C(1), C(16), C(6), 6,
 	BLACK, WHITE, {
 	
 	{ 0, C(0), C(16), C(1), "New     [Ctrl+n]" },
@@ -12,12 +12,11 @@ menu_t submenu_file = {
 	{ 0, C(2), C(16), C(1), "Save    [Ctrl+s]" },
 	{ 0, C(3), C(16), C(1), "Save as [Ctrl+S]" },
 	{ 0, C(4), C(16), C(1), "Export  [Ctrl+e]" },
-	{ 0, C(5), C(16), C(1), "Setup   [Ctrl+,]" },
-	{ 0, C(6), C(16), C(1), "Quit    [Ctrl+q]" },
+	{ 0, C(5), C(16), C(1), "Quit    [Ctrl+q]" },
 }};
 
 void (*submenu_file_fn[])() = {
-	file_new, file_open, NULL, NULL, NULL, NULL, file_quit
+	file_new, file_open, file_save, file_save_as, NULL, file_quit
 };
 
 const char *extensions[2] = { "*.mon", "*.MON" };
@@ -26,7 +25,7 @@ void file_new() {
 	static dialog_t sure = {
 		DIALOG_SIMPLE,
 		"Are you sure you want to create a new file?\n \n"
-		"Any unsaved data will be lost!",
+		"Any unsaved changes will be lost!",
 		2, { "Go ahead", "Cancel" }
 	};
 
@@ -60,8 +59,9 @@ void file_new() {
 //		raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
 		raw_mt[0x5D] = dialog.buttons;	// Channels
 		raw_mt[0x5E] = 2;	// Cell size
+
+		memset(raw_mt + 0x5F, 0xFF, 0x100);
 		raw_mt[0x5F] = 0;
-		raw_mt[0x60] = 0xFF;
 
 		InitMON("New file");
 		lastname = NULL;
@@ -72,7 +72,7 @@ void file_open() {
 	static dialog_t sure = {
 		DIALOG_SIMPLE,
 		"Are you sure you want to open another file?\n \n"
-		"Any unsaved data will be lost!",
+		"Any unsaved changes will be lost!",
 		2, { "Go ahead", "Cancel" }
 	};
 
@@ -97,13 +97,44 @@ void file_open() {
 	}
 }
 
+void file_save() {
+	if(raw_mt == NULL || lastname == NULL) {
+		file_save_as();
+	} else {
+		player_stop();
+
+		SaveMON(lastname);
+	}
+}
+
+void file_save_as() {
+	if(raw_mt == NULL) {
+		UpdateStatus("There is nothing to save.");
+	} else {
+		char *filename = tinyfd_saveFileDialog(
+			"Save Monotone module",
+			"",
+			2,
+			extensions,
+			"Monotone module");
+
+		if(filename) {
+			player_stop();
+
+			SaveMON(filename);
+		} else {
+			UpdateStatus("No file selected!");
+		}
+	}
+}
+
 void file_quit() {
 	if(raw_mt == NULL) exit(0);
 
 	static dialog_t sure = {
 		DIALOG_SIMPLE,
 		"Are you sure you want to quit?\n \n"
-		"Any unsaved data will be lost!",
+		"Any unsaved changes will be lost!",
 		2, { "Quit Polytone", "Stay" }
 	};
 	

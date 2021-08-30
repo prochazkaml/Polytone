@@ -6,3 +6,4 @@ extern char *lastname;
 
 int InitMON(char *filename);
 int LoadMON(char *filename);
+int SaveMON(char *filename);

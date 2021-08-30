@@ -65,3 +65,38 @@ int LoadMON(char *filename) {
 
 	return InitMON(filename);
 }
+
+int SaveMON(char *filename) {
+	/*
+	 * Return values:
+	 * 0: OK
+	 * 1: Could not save file
+	 */
+
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	FILE *mt = fopen(filename, "wb");
+
+	if(mt == NULL) {
+		UpdateStatus("Could not save %s!", basename(filename));
+		return 1;
+	}
+
+	// Calculate the number of patterns
+
+	int pats = 0;
+
+	for(int i = 0x5F; i < 0x15F; i++) {
+		if(raw_mt[i] > pats && raw_mt[i] != 0xFF) pats = raw_mt[i];
+	}
+
+	raw_mt[0x5C] = ++pats;
+
+	fwrite(raw_mt, 1, 0x15F + pats * 64 * status->channels * 2, mt);
+	fclose(mt);
+
+	lastname = filename;
+
+	UpdateStatus("%s saved!", basename(filename));
+	return 0;
+}
