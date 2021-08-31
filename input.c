@@ -24,6 +24,8 @@ kbdshortcut_t shortcuts[] = {
 	{ 0, SDL_SCANCODE_F5, player_resume_pause },
 	{ 0, SDL_SCANCODE_F6, player_restart },
 	{ 0, SDL_SCANCODE_F8, player_stop },
+	{ 0, SDL_SCANCODE_F9, edit_octave_down },
+	{ 0, SDL_SCANCODE_F10, edit_octave_up },
 	{ 0, SDL_SCANCODE_F11, track_add_order },
 	{ 0, SDL_SCANCODE_F12, track_remove_order },
 };

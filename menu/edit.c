@@ -9,12 +9,12 @@ menu_t submenu_edit = {
 	{ 0, C(1), C(19), C(1), "Copy       [Ctrl+c]" },
 	{ 0, C(2), C(19), C(1), "Paste      [Ctrl+v]" },
 	{ 0, C(3), C(19), C(1), "Select all [Ctrl+a]" },
-	{ 0, C(4), C(25), C(1), "Octave down    [F9]" },
-	{ 0, C(5), C(25), C(1), "Octave up     [F10]" },
+	{ 0, C(4), C(19), C(1), "Octave up     [F10]" },
+	{ 0, C(5), C(19), C(1), "Octave down    [F9]" },
 }};
 
 void (*submenu_edit_fn[])() = {
-	NULL, NULL, NULL, NULL, edit_octave_down, edit_octave_up
+	NULL, NULL, NULL, NULL, edit_octave_up, edit_octave_down
 };
 
 void edit_octave_down() {

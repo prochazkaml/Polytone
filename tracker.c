@@ -146,15 +146,6 @@ void ParseKey(int mod, int scancode) {
 
 				status->data[ptr] = 0;
 				break;
-
-			case SDL_SCANCODE_F9:
-				if(tracker.octave > 0) tracker.octave--;
-				break;
-
-			case SDL_SCANCODE_F10:
-				if(tracker.octave < 9) tracker.octave++;
-				break;
-
 		}
 
 		// Parse note keys
