@@ -131,6 +131,9 @@ void track_change_channels() {
 			raw_mt[0x5D] = channels;
 			MTPlayer_Init(raw_mt);
 
+			if(tracker.channel >= status->channels) 
+				tracker.channel = status->channels - 1;
+
 			DrawDialog(&ok);
 		}
 	}
