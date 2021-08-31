@@ -200,8 +200,6 @@ int DrawDialog(dialog_t *dialog) {
 				render.cur = dialog->text[strlen(dialog->text) + 1];
 				render.min = dialog->text[strlen(dialog->text) + 2];
 				render.max = dialog->text[strlen(dialog->text) + 3];
-
-				printf("%d %d %d\n", render.cur, render.min, render.max);
 			}
 		}
 
