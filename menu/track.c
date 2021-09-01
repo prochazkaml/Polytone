@@ -64,31 +64,30 @@ void track_change_channels() {
 
 	if(raw_mt == NULL) return;
 
-	static dialog_t dialog = {
+	dialog_numberparam_t params = { status->channels, 1, 12 };
+
+	dialog_t dialog = {
 		DIALOG_NUMBERINPUT,
 		"New number of channels: %%%%\n \n"
 		"Use the \x7F/\x80 arrow keys to select.\n \n"
-		"Ranges from 1 to 12."
-		"\0\x03\x01\x0C",	// Parameters: default val 3, min 1, max 12
-		2, { "Ok", "Cancel" }
+		"Ranges from 1 to 12.",
+		&params, 2, { "Ok", "Cancel" }
 	};
-
-	dialog.buttons = 2;		// DrawDialog() changes it
 
 	static dialog_t nothing = {
 		DIALOG_SIMPLE,
 		"No changes have been made.",
-		1, { "Ok" }
+		NULL, 1, { "Ok" }
 	};
 
 	static dialog_t ok = {
 		DIALOG_SIMPLE,
 		"Changes were successful.",
-		1, { "Ok" }
+		NULL, 1, { "Ok" }
 	};
 
 	if(!DrawDialog(&dialog)) {
-		int channels = dialog.buttons, old = status->channels;
+		int channels = params.def, old = status->channels;
 
 		if(channels == status->channels) {
 			DrawDialog(&nothing);

@@ -22,10 +22,15 @@ enum dialogtype {
 };
 
 typedef struct {
+	int def, min, max;
+} dialog_numberparam_t;
+
+typedef struct {
 	enum dialogtype type;
 	char *text;
+	void *params;
 	int buttons;
-	char *button[];
+	char *button[32];
 } dialog_t;
 
 typedef struct {

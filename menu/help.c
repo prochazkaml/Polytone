@@ -21,7 +21,7 @@ void help_about() {
 		"Inspired by Trixter / Hornet's Monotone\n \n"
 		"https://polytone.prochazka.ml/",
 
-		1, { "Ok" }
+		NULL, 1, { "Ok" }
 	};
 
 	DrawDialog(&dialog);

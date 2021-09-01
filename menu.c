@@ -78,7 +78,7 @@ void SelectMenuItem(int category, int item) {
 	static dialog_t na = {
 		DIALOG_SIMPLE,
 		"This function is not available yet",
-		1, { "Ok" }
+		NULL, 1, { "Ok" }
 	};
 	
 	if(submenus_fn[category][item] != NULL)
@@ -197,9 +197,9 @@ int DrawDialog(dialog_t *dialog) {
 				outernumfield.x = render.nx - 2;
 				outernumfield.y = render.ny - 3;
 
-				render.cur = dialog->text[strlen(dialog->text) + 1];
-				render.min = dialog->text[strlen(dialog->text) + 2];
-				render.max = dialog->text[strlen(dialog->text) + 3];
+				render.cur = ((dialog_numberparam_t *)dialog->params)->def;
+				render.min = ((dialog_numberparam_t *)dialog->params)->min;
+				render.max = ((dialog_numberparam_t *)dialog->params)->max;
 			}
 		}
 
@@ -255,7 +255,7 @@ int DrawDialog(dialog_t *dialog) {
 	// Set the return value for the number field
 
 	if(dialog->type == DIALOG_NUMBERINPUT) {
-		dialog->buttons = render.cur;
+		((dialog_numberparam_t *)dialog->params)->def = render.cur;
 	}
 
 	return retval;

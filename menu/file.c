@@ -26,23 +26,22 @@ void file_new() {
 		DIALOG_SIMPLE,
 		"Are you sure you want to create a new file?\n \n"
 		"Any unsaved changes will be lost!",
-		2, { "Go ahead", "Cancel" }
+		NULL, 2, { "Go ahead", "Cancel" }
 	};
 
 	if(raw_mt != NULL) {
 		if(DrawDialog(&sure)) return;
 	}
 
-	static dialog_t dialog = {
+	dialog_numberparam_t params = { 3, 1, 12 };
+
+	dialog_t dialog = {
 		DIALOG_NUMBERINPUT,
 		"Number of channels: %%%%\n \n"
 		"Use the \x7F/\x80 arrow keys to select.\n \n"
-		"Ranges from 1 to 12."
-		"\0\x03\x01\x0C",	// Parameters: default val 3, min 1, max 12
-		2, { "Ok", "Cancel" }
+		"Ranges from 1 to 12.",
+		&params, 2, { "Ok", "Cancel" }
 	};
-
-	dialog.buttons = 2;		// DrawDialog() changes it
 
 	if(!DrawDialog(&dialog)) {
 		if(raw_mt != NULL) {
@@ -57,7 +56,7 @@ void file_new() {
 
 		raw_mt[0x5B] = 1;	// Version
 //		raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
-		raw_mt[0x5D] = dialog.buttons;	// Channels
+		raw_mt[0x5D] = params.def;	// Channels
 		raw_mt[0x5E] = 2;	// Cell size
 
 		memset(raw_mt + 0x5F, 0xFF, 0x100);
@@ -73,7 +72,7 @@ void file_open() {
 		DIALOG_SIMPLE,
 		"Are you sure you want to open another file?\n \n"
 		"Any unsaved changes will be lost!",
-		2, { "Go ahead", "Cancel" }
+		NULL, 2, { "Go ahead", "Cancel" }
 	};
 
 	if(raw_mt != NULL) {
@@ -135,7 +134,7 @@ void file_quit() {
 		DIALOG_SIMPLE,
 		"Are you sure you want to quit?\n \n"
 		"Any unsaved changes will be lost!",
-		2, { "Quit Polytone", "Stay" }
+		NULL, 2, { "Quit Polytone", "Stay" }
 	};
 	
 	if(DrawDialog(&sure) == 0) exit(0);
