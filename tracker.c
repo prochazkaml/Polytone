@@ -389,8 +389,8 @@ void RenderTracker() {
 		Printf(8, 23, WHITE, "%02X", status->ordertable[tracker.order]);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
-			UpdateStatus("Playing %d.%02ds @ speed %d...",
-				samples / 100, samples % 100, status->tempo);
+			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
+				samples / 100, samples % 100, status->tempo, status->audiospeed);
 
 			for(int c = 0; c < status->channels; c++) {
 				int color = status->channel[c].enabled ? WHITE : 0xFF808080;

@@ -5,16 +5,17 @@
 #include "../tracker.h"
 
 menu_t submenu_player = {
-	C(6), C(1), C(20), C(3), 3,
+	C(6), C(1), C(20), C(4), 4,
 	BLACK, WHITE, {
 	
 	{ 0, C(0), C(20), C(1), "Resume/Pause    [F5]" },
 	{ 0, C(1), C(20), C(1), "Play from start [F6]" },
-	{ 0, C(2), C(20), C(1), "Stop            [F8]" },
+	{ 0, C(2), C(20), C(1), "Play pattern    [F7]" },
+	{ 0, C(3), C(20), C(1), "Stop            [F8]" },
 }};
 
 void (*submenu_player_fn[])() = {
-	player_resume_pause, player_restart, player_stop
+	player_resume_pause, player_restart, player_pattern, player_stop
 };
 
 void player_resume_pause() {
@@ -53,6 +54,14 @@ void player_restart() {
 	} else {
 		UpdateStatus("There is nothing to restart.");
 	}
+}
+
+void player_pattern() {
+	SDL_PauseAudio(1);
+
+	tracker.row = 0;
+
+	player_resume_pause();
 }
 
 void player_stop() {
