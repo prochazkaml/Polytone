@@ -5,7 +5,7 @@
 
 tracker_t tracker;
 
-uint8_t notekeys[] = {
+const uint8_t notekeys[] = {
 	SDL_SCANCODE_Z, SDL_SCANCODE_S,
 	SDL_SCANCODE_X, SDL_SCANCODE_D,
 	SDL_SCANCODE_C,
@@ -27,6 +27,18 @@ uint8_t notekeys[] = {
 	SDL_SCANCODE_P,
 	SDL_SCANCODE_LEFTBRACKET, SDL_SCANCODE_EQUALS,
 	SDL_SCANCODE_RIGHTBRACKET
+};
+
+const uint8_t effkeys[] = {
+	SDL_SCANCODE_0, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
+	SDL_SCANCODE_4, SDL_SCANCODE_B, SDL_SCANCODE_D, SDL_SCANCODE_F
+};
+
+const uint8_t effvalkeys[] = {
+	SDL_SCANCODE_0, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
+	SDL_SCANCODE_4, SDL_SCANCODE_5, SDL_SCANCODE_6,	SDL_SCANCODE_7,
+	SDL_SCANCODE_8, SDL_SCANCODE_9, SDL_SCANCODE_A, SDL_SCANCODE_B,
+	SDL_SCANCODE_C, SDL_SCANCODE_D, SDL_SCANCODE_E, SDL_SCANCODE_F
 };
 
 void MoveCursor(int amount) {
@@ -51,10 +63,24 @@ void MoveCursor(int amount) {
 	}
 }
 
+int GetPtr() {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	return (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
+}
+
+int IsDualslotEffect() {
+	// Checks if the current effect is either 0XY or 4XY.
+
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	return (status->data[GetPtr()] & 0x00C0) ? 0 : 1;
+}
+
 void InsertNote(int note) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
-	int ptr = (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
+	int ptr = GetPtr();
 
 	uint16_t data = status->data[ptr];
 
@@ -66,10 +92,56 @@ void InsertNote(int note) {
 	MoveCursor(1);
 }
 
+void InsertEffectValue(int pos, int val) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr = GetPtr();
+
+	uint16_t data = status->data[ptr];
+
+	if(IsDualslotEffect()) {
+		if(!pos) {
+			data &= 0xFFC7;
+			data |= val << 3;
+		} else {
+			data &= 0xFFF8;
+			data |= val;
+		}
+	} else {
+		if(!pos) {
+			data &= 0xFFCF;
+			data |= val << 4;
+		} else {
+			data &= 0xFFF0;
+			data |= val;
+		}
+	}
+
+	status->data[ptr] = data;
+}
+
+void InsertEffect(int eff) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr = GetPtr();
+
+	uint16_t data = status->data[ptr];
+
+	data &= 0xFE3F;
+	data |= eff << 6;
+
+	status->data[ptr] = data;
+
+	if((data & 0x3F) == 0 && eff == 0) {
+		InsertEffectValue(0, 4);
+		InsertEffectValue(1, 7);
+	}
+}
+
 void ParseKey(int mod, int scancode) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
-	int ptr;
+	int ptr = GetPtr();
 
 	printf("%d %d\n", mod, scancode);
 
@@ -92,9 +164,12 @@ void ParseKey(int mod, int scancode) {
 
 					MTPlayer_Init(raw_mt);
 				} else {
-					tracker.channel--;
-					if(tracker.channel < 0)
-						tracker.channel = status->channels - 1;
+					tracker.column--;
+					if(tracker.column < 0) {
+						tracker.column = 3;
+						tracker.channel--;
+						if(tracker.channel < 0) tracker.channel = status->channels - 1;
+					}
 				}
 
 				break;
@@ -106,8 +181,12 @@ void ParseKey(int mod, int scancode) {
 
 					MTPlayer_Init(raw_mt);
 				} else {
-					tracker.channel++;
-					if(tracker.channel >= status->channels) tracker.channel = 0;
+					tracker.column++;
+					if(tracker.column >= 4) {
+						tracker.column = 0;
+						tracker.channel++;
+						if(tracker.channel >= status->channels) tracker.channel = 0;
+					}
 				}
 
 				break;
@@ -133,12 +212,29 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_BACKSPACE:
-				InsertNote(0);
+				if(tracker.column) {
+					InsertEffect(0);
+					InsertEffectValue(0, 0);
+					InsertEffectValue(1, 0);
+				
+					MoveCursor(1);
+				} else {
+					InsertNote(0);
+				}
+
+				break;
+
+			case SDL_SCANCODE_INSERT:
+				for(int i = 0x3F; i > tracker.row; i--) {
+					ptr = (status->ordertable[tracker.order] * 64 + i) * status->channels + tracker.channel;
+
+					status->data[ptr] = status->data[ptr - status->channels];
+				}
+
+				status->data[GetPtr()] = 0;
 				break;
 
 			case SDL_SCANCODE_DELETE:
-				ptr = (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
-
 				for(int i = tracker.row; i < 0x3F; i++) {
 					status->data[ptr] = status->data[ptr + status->channels];
 					ptr += status->channels;
@@ -148,14 +244,46 @@ void ParseKey(int mod, int scancode) {
 				break;
 		}
 
-		// Parse note keys
+		// Parse note/effect keys
 
-		for(int i = 0; i < sizeof(notekeys); i++) {
-			if(scancode == notekeys[i]) {
-				int note = i + tracker.octave * 12 - 8;
-				if(note && note <= 88) InsertNote(note);
+		switch(tracker.column) {
+			case 0:
+				for(int i = 0; i < sizeof(notekeys); i++) {
+					if(scancode == notekeys[i]) {
+						int note = i + tracker.octave * 12 - 8;
+						if(note && note <= 88) InsertNote(note);
+						break;
+					}
+				}
+
 				break;
-			}
+
+			case 1:
+				for(int i = 0; i < sizeof(effkeys); i++) {
+					if(scancode == effkeys[i]) {
+						InsertEffect(i);
+						tracker.column++;
+					}
+				}
+
+				break;
+
+			case 2:
+			case 3:
+				for(int i = 0; i < sizeof(effvalkeys) / (IsDualslotEffect() ? 2 : ((tracker.column - 2) ? 1 : 4)); i++) {
+					if(scancode == effvalkeys[i]) {
+						InsertEffectValue(tracker.column - 2, i);
+						
+						if(tracker.column == 2) {
+							tracker.column++;
+						} else {
+							tracker.column = 1;
+							MoveCursor(1);
+						}
+					}
+				}
+
+				break;
 		}
 
 		tracker.update = 1;
@@ -239,6 +367,9 @@ void RenderTracker() {
 	SDL_Rect order = { .x = TRACKERWIN_W, .y = 8, .w = ORDERWIDTH, .h = S_HEIGHT - 16 };
 	SDL_Rect orderbar = { .x = TRACKERWIN_W, .y = 8, .w = BARWIDTH, .h = S_HEIGHT - 16 };
 
+	const int offsetstart[] = { 2, 34, 42, 50 };
+	const int offsetend[] = { 26, 42, 50, 58 };
+
 	if(tracker.update) {
 		SDL_FillRect(surface, &rect, 0xFF222222);
 
@@ -296,7 +427,7 @@ void RenderTracker() {
 					PIXEL(x + 94 + tracker.channel * 64, y) = WHITE;
 				}
 
-				for(int x = 0; x < 60; x++) {
+				for(int x = offsetstart[tracker.column]; x < offsetend[tracker.column]; x++) {
 					PIXEL(x + 34 + tracker.channel * 64, y) += 0x202020;
 				}
 			}
