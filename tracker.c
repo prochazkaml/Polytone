@@ -251,7 +251,7 @@ void ParseKey(int mod, int scancode) {
 				for(int i = 0; i < sizeof(notekeys); i++) {
 					if(scancode == notekeys[i]) {
 						int note = i + tracker.octave * 12 - 8;
-						if(note && note <= 88) InsertNote(note);
+						if(note > 0 && note <= 88) InsertNote(note);
 						break;
 					}
 				}
