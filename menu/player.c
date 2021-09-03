@@ -32,7 +32,7 @@ void player_resume_pause() {
 
 				memcpy(&old, status, sizeof(songstatus_t));
 					
-				int i;
+				int i, j;
 
 				while(1) {
 					if((i = status->order * 64 + status->row) >= (tracker.order * 64 + tracker.row)) {
@@ -44,8 +44,15 @@ void player_resume_pause() {
 					
 					MTPlayer_ProcessTick();
 
-					if(status->order * 64 + status->row < i) {
+					if(status->order * 64 + status->row != i) {
+						j = 0;
+					} else {
+						j++;
+					}
+
+					if(j > 33 || status->order * 64 + status->row < i) {
 						// Fallback if the tracker returned to the start
+						// or if it got stuck on a single line
 
 						MTPlayer_Init(raw_mt);
 						
