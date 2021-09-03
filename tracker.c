@@ -99,7 +99,7 @@ void InsertNote(int note) {
 	uint16_t data = status->data[ptr];
 
 	data &= 0x1FF;
-	data |= note << 9;
+	data |= (note & 0x7F) << 9;
 
 	status->data[ptr] = data;
 
@@ -116,18 +116,18 @@ void InsertEffectValue(int pos, int val) {
 	if(IsDualslotEffect()) {
 		if(!pos) {
 			data &= 0xFFC7;
-			data |= val << 3;
+			data |= (val & 7) << 3;
 		} else {
 			data &= 0xFFF8;
-			data |= val;
+			data |= val & 7;
 		}
 	} else {
 		if(!pos) {
 			data &= 0xFFCF;
-			data |= val << 4;
+			data |= (val & 3) << 4;
 		} else {
 			data &= 0xFFF0;
-			data |= val;
+			data |= val & 0xF;
 		}
 	}
 
@@ -142,7 +142,7 @@ void InsertEffect(int eff) {
 	uint16_t data = status->data[ptr];
 
 	data &= 0xFE3F;
-	data |= eff << 6;
+	data |= (eff & 7) << 6;
 
 	status->data[ptr] = data;
 
@@ -205,6 +205,57 @@ int GetSelectedLeftX() {
 
 int GetSelectedRightX() {
 	return 32 + tracker._selchannel1 * 64 + offsetend[tracker._selcolumn1];
+}
+
+int DeleteSelectedBox() {
+	for(int r = tracker._selrow0; r <= tracker._selrow1; r++) {
+		for(int i = tracker._selchannel0 * 4 + tracker._selcolumn0;
+			i <= tracker._selchannel1 * 4 + tracker._selcolumn1; i++) {
+
+			tracker.row = r;
+			tracker.channel = i / 4;
+			tracker.column = i % 4;
+
+			switch(tracker.column) {
+				case 0:
+					InsertNote(0);
+					break;
+
+				case 1:
+					InsertEffect(0x10);	// same as 0, but doesn't trigger autofill
+					break;
+				
+				case 2:
+					InsertEffectValue(0, 0);
+					break;
+
+				case 3:
+					InsertEffectValue(1, 0);
+					break;
+			}
+		}
+	}
+
+	tracker.selected = 0;
+	tracker.row = tracker._selrow0;
+	tracker.channel = tracker._selchannel0;
+	tracker.column = tracker._selcolumn0;
+
+	return tracker._selrow1 - tracker._selrow0 + 1;
+}
+
+void MoveDataUp() {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr = GetPtr();
+
+	for(int i = tracker.row; i < 0x3F; i++) {
+		status->data[ptr] = status->data[ptr + status->channels];
+		ptr += status->channels;
+	}
+
+	status->data[ptr] = 0;
+
 }
 
 void ParseKey(int mod, int scancode) {
@@ -300,15 +351,18 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_BACKSPACE:
-				StopSelection();
-				if(tracker.column) {
-					InsertEffect(0);
-					InsertEffectValue(0, 0);
-					InsertEffectValue(1, 0);
-				
-					MoveCursor(1);
+				if(tracker.selected) {
+					DeleteSelectedBox();
 				} else {
-					InsertNote(0);
+					if(tracker.column) {
+						InsertEffect(0);
+						InsertEffectValue(0, 0);
+						InsertEffectValue(1, 0);
+					
+						MoveCursor(1);
+					} else {
+						InsertNote(0);
+					}
 				}
 
 				break;
@@ -325,13 +379,19 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_DELETE:
-				StopSelection();
-				for(int i = tracker.row; i < 0x3F; i++) {
-					status->data[ptr] = status->data[ptr + status->channels];
-					ptr += status->channels;
+				if(tracker.selected) {
+					for(int r = DeleteSelectedBox(); r > 0; r--) {
+						for(int i = tracker._selchannel0; i <= tracker._selchannel1; i++) {
+							tracker.channel = i;
+							MoveDataUp();
+						}
+					}
+
+					tracker.channel = tracker._selchannel0;
+				} else {
+					MoveDataUp();
 				}
 
-				status->data[ptr] = 0;
 				break;
 		}
 
