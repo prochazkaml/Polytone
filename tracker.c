@@ -41,20 +41,27 @@ const uint8_t effvalkeys[] = {
 	SDL_SCANCODE_C, SDL_SCANCODE_D, SDL_SCANCODE_E, SDL_SCANCODE_F
 };
 
+const int offsetstart[] = { 4, 36, 44, 52 };
+const int offsetend[] = { 28, 44, 52, 60 };
+
 void MoveCursor(int amount) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
 	tracker.row += amount;
 
 	if(amount > 0) {
-		while(tracker.row >= 0x40) {
+		if(tracker.selected) {
+			if(tracker.row >= 0x40) tracker.row -= 0x40;
+		} else while(tracker.row >= 0x40) {
 			tracker.row -= 0x40;
 			tracker.order++;
 
 			if(tracker.order >= status->orders) tracker.order = 0; 
 		}
 	} else if(amount < 0) {
-		while(tracker.row < 0) {
+		if(tracker.selected) {
+			if(tracker.row < 0) tracker.row += 0x40;
+		} else while(tracker.row < 0) {
 			tracker.row += 0x40;
 			tracker.order--;
 
@@ -138,6 +145,61 @@ void InsertEffect(int eff) {
 	}
 }
 
+void StopSelection() {
+	if(tracker.selected) {
+		tracker.selected = 0;
+		UpdateStatus("The current selection was abandoned.");
+	}
+}
+
+void CheckSelection(int mod) {
+	if((mod & KMOD_SHIFT) && !tracker.selected) {
+		tracker.selected = 1;
+		tracker.selrow = tracker.row;
+		tracker.selchannel = tracker.channel;
+		tracker.selcolumn = tracker.column;
+		UpdateStatus("Selection mode active!");
+	} else if(!(mod & KMOD_SHIFT)) {
+		StopSelection();
+	}
+}
+
+void UpdateSelectedBox() {
+	if(tracker.selrow < tracker.row) {
+		tracker._selrow0 = tracker.selrow;
+		tracker._selrow1 = tracker.row;
+	} else {
+		tracker._selrow1 = tracker.selrow;
+		tracker._selrow0 = tracker.row;
+	}
+
+	if((tracker.selchannel * 4 + tracker.selcolumn) < 
+		(tracker.channel * 4 + tracker.column)) {
+		
+		tracker._selchannel0 = tracker.selchannel;
+		tracker._selchannel1 = tracker.channel;
+		tracker._selcolumn0 = tracker.selcolumn;
+		tracker._selcolumn1 = tracker.column;
+	} else {
+		tracker._selchannel0 = tracker.channel;
+		tracker._selchannel1 = tracker.selchannel;
+		tracker._selcolumn0 = tracker.column;
+		tracker._selcolumn1 = tracker.selcolumn;
+	}
+}
+
+int IsRowInSelected(int row) {
+	return row >= tracker._selrow0 && row <= tracker._selrow1;
+}
+
+int GetSelectedLeftX() {
+	return 32 + tracker._selchannel0 * 64 + offsetstart[tracker._selcolumn0];
+}
+
+int GetSelectedRightX() {
+	return 32 + tracker._selchannel1 * 64 + offsetend[tracker._selcolumn1];
+}
+
 void ParseKey(int mod, int scancode) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
@@ -150,20 +212,26 @@ void ParseKey(int mod, int scancode) {
 		
 		switch(scancode) {
 			case SDL_SCANCODE_UP:
+				CheckSelection(mod);
 				MoveCursor((mod & KMOD_CTRL) ? (-16) : (-1));
 				break;
 				
 			case SDL_SCANCODE_DOWN:
+				CheckSelection(mod);
 				MoveCursor((mod & KMOD_CTRL) ? 16 : 1);
 				break;
 
 			case SDL_SCANCODE_LEFT:
 				if(mod & KMOD_CTRL) {
+					StopSelection();
+
 					if(raw_mt[0x5F + tracker.order] > 0)
 						raw_mt[0x5F + tracker.order]--;
 
 					MTPlayer_Init(raw_mt);
 				} else {
+					CheckSelection(mod);
+
 					tracker.column--;
 					if(tracker.column < 0) {
 						tracker.column = 3;
@@ -176,11 +244,15 @@ void ParseKey(int mod, int scancode) {
 
 			case SDL_SCANCODE_RIGHT:
 				if(mod & KMOD_CTRL) {
+					StopSelection();
+
 					if(raw_mt[0x5F + tracker.order] < 0xFF)
 						raw_mt[0x5F + tracker.order]++;
 
 					MTPlayer_Init(raw_mt);
 				} else {
+					CheckSelection(mod);
+
 					tracker.column++;
 					if(tracker.column >= 4) {
 						tracker.column = 0;
@@ -192,26 +264,32 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_PAGEUP:
+				CheckSelection(mod);
 				MoveCursor(-64);
 				break;
 				
 			case SDL_SCANCODE_PAGEDOWN:
+				CheckSelection(mod);
 				MoveCursor(64);
 				break;
 				
 			case SDL_SCANCODE_HOME:
+				CheckSelection(mod);
 				tracker.row = 0;
 				break;
 
 			case SDL_SCANCODE_END:
+				CheckSelection(mod);
 				tracker.row = 0x3F;
 				break;
 
 			case SDL_SCANCODE_SPACE:
+				StopSelection();
 				InsertNote(0x7F);
 				break;
 
 			case SDL_SCANCODE_BACKSPACE:
+				StopSelection();
 				if(tracker.column) {
 					InsertEffect(0);
 					InsertEffectValue(0, 0);
@@ -225,6 +303,7 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_INSERT:
+				StopSelection();
 				for(int i = 0x3F; i > tracker.row; i--) {
 					ptr = (status->ordertable[tracker.order] * 64 + i) * status->channels + tracker.channel;
 
@@ -235,6 +314,7 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_DELETE:
+				StopSelection();
 				for(int i = tracker.row; i < 0x3F; i++) {
 					status->data[ptr] = status->data[ptr + status->channels];
 					ptr += status->channels;
@@ -250,6 +330,7 @@ void ParseKey(int mod, int scancode) {
 			case 0:
 				for(int i = 0; i < sizeof(notekeys); i++) {
 					if(scancode == notekeys[i]) {
+						StopSelection();
 						int note = i + tracker.octave * 12 - 8;
 						if(note > 0 && note <= 88) InsertNote(note);
 						break;
@@ -261,6 +342,7 @@ void ParseKey(int mod, int scancode) {
 			case 1:
 				for(int i = 0; i < sizeof(effkeys); i++) {
 					if(scancode == effkeys[i]) {
+						StopSelection();
 						InsertEffect(i);
 						tracker.column++;
 					}
@@ -272,6 +354,7 @@ void ParseKey(int mod, int scancode) {
 			case 3:
 				for(int i = 0; i < sizeof(effvalkeys) / (IsDualslotEffect() ? 2 : ((tracker.column - 2) ? 1 : 4)); i++) {
 					if(scancode == effvalkeys[i]) {
+						StopSelection();
 						InsertEffectValue(tracker.column - 2, i);
 						
 						if(tracker.column == 2) {
@@ -301,6 +384,8 @@ void ParseKey(int mod, int scancode) {
 			status->channel[scancode].enabled ^= 1;
 		}
 	}
+
+	if(tracker.selected) UpdateSelectedBox();
 }
 
 const char *notes[12] = {
@@ -367,9 +452,6 @@ void RenderTracker() {
 	SDL_Rect order = { .x = TRACKERWIN_W, .y = 8, .w = ORDERWIDTH, .h = S_HEIGHT - 16 };
 	SDL_Rect orderbar = { .x = TRACKERWIN_W, .y = 8, .w = BARWIDTH, .h = S_HEIGHT - 16 };
 
-	const int offsetstart[] = { 2, 34, 42, 50 };
-	const int offsetend[] = { 26, 42, 50, 58 };
-
 	if(tracker.update) {
 		SDL_FillRect(surface, &rect, 0xFF222222);
 
@@ -391,6 +473,8 @@ void RenderTracker() {
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
 			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
 				samples / 100, samples % 100, status->tempo, status->audiospeed);
+
+			tracker.selected = 0;
 
 			for(int c = 0; c < status->channels; c++) {
 				int color = status->channel[c].enabled ? WHITE : 0xFF808080;
@@ -421,14 +505,16 @@ void RenderTracker() {
 				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
 			}
 
-			for(int y = MIDDLEROW_Y; y < MIDDLEROW_Y + 8; y++) {
-				for(int x = 0; x < 2; x++) {
-					PIXEL(x + 32 + tracker.channel * 64, y) = WHITE;
-					PIXEL(x + 94 + tracker.channel * 64, y) = WHITE;
-				}
+			if(!tracker.selected) {
+				for(int y = MIDDLEROW_Y; y < MIDDLEROW_Y + 8; y++) {
+					for(int x = 0; x < 2; x++) {
+						PIXEL(x + 32 + tracker.channel * 64, y) = WHITE;
+						PIXEL(x + 94 + tracker.channel * 64, y) = WHITE;
+					}
 
-				for(int x = offsetstart[tracker.column]; x < offsetend[tracker.column]; x++) {
-					PIXEL(x + 34 + tracker.channel * 64, y) += 0x202020;
+					for(int x = offsetstart[tracker.column]; x < offsetend[tracker.column]; x++) {
+						PIXEL(x + 32 + tracker.channel * 64, y) += 0x202020;
+					}
 				}
 			}
 		}
@@ -440,8 +526,15 @@ void RenderTracker() {
 			if(row >= 0 && row < 64) {
 				drawn = 1;
 
-				DrawRow(y, tracker.order, row, status);
+				if(tracker.selected) {
+					if(IsRowInSelected(row)) for(int i = y; i < y + 8; i++) {
+						for(int x = GetSelectedLeftX(); x < GetSelectedRightX(); x++) {
+							PIXEL(x, i) += 0x404040;
+						}
+					}
+				}
 
+				DrawRow(y, tracker.order, row, status);
 			} else {
 				if(!drawn) {
 					if(tracker.order > 0)

@@ -31,6 +31,7 @@ int InitMON(char *filename) {
 	tracker.column = 0;
 	tracker.channel = 0;
 	tracker.update = 1;
+	tracker.selected = 0;
 
 	UpdateStatus("%s loaded!", basename(filename));
 	return 0;
