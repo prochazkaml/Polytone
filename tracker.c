@@ -226,11 +226,8 @@ int DeleteSelectedBox() {
 					break;
 				
 				case 2:
-					InsertEffectValue(0, 0);
-					break;
-
 				case 3:
-					InsertEffectValue(1, 0);
+					InsertEffectValue(tracker.column - 2, 0);
 					break;
 			}
 		}
