@@ -20,6 +20,7 @@ void (*submenu_player_fn[])() = {
 
 void player_resume_pause() {
 	songstatus_t *status = MTPlayer_GetStatus();
+	songstatus_t old;
 
 	if(raw_mt != NULL) {
 		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
@@ -29,8 +30,31 @@ void player_resume_pause() {
 			if(tracker.row != status->row || tracker.order != status->order) {
 				MTPlayer_Init(raw_mt);
 
-				status->order = tracker.order;
-				status->row = tracker.row - 1;
+				memcpy(&old, status, sizeof(songstatus_t));
+					
+				int i;
+
+				while(1) {
+					if((i = status->order * 64 + status->row) >= (tracker.order * 64 + tracker.row)) {
+						memcpy(status, &old, sizeof(songstatus_t));
+						break;
+					}
+
+					memcpy(&old, status, sizeof(songstatus_t));
+					
+					MTPlayer_ProcessTick();
+
+					if(status->order * 64 + status->row < i) {
+						// Fallback if the tracker returned to the start
+
+						MTPlayer_Init(raw_mt);
+						
+						status->order = tracker.order;
+						status->row = tracker.row - 1;
+
+						break;
+					}
+				}
 			}
 
 			SDL_PauseAudio(0);
