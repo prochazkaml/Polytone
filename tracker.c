@@ -41,6 +41,13 @@ const uint8_t effvalkeys[] = {
 	SDL_SCANCODE_C, SDL_SCANCODE_D, SDL_SCANCODE_E, SDL_SCANCODE_F
 };
 
+const uint8_t ignorekeys[] = {
+	SDL_SCANCODE_LCTRL, SDL_SCANCODE_LSHIFT, 
+	SDL_SCANCODE_RCTRL, SDL_SCANCODE_LGUI,
+	SDL_SCANCODE_LALT, SDL_SCANCODE_LGUI,
+	SDL_SCANCODE_RALT, SDL_SCANCODE_RGUI
+};
+
 const int offsetstart[] = { 4, 36, 44, 52 };
 const int offsetend[] = { 28, 44, 52, 60 };
 
@@ -201,6 +208,10 @@ int GetSelectedRightX() {
 }
 
 void ParseKey(int mod, int scancode) {
+	for(int i = 0; i < sizeof(ignorekeys); i++) {
+		if(scancode == ignorekeys[i]) return;
+	}
+
 	songstatus_t *status = MTPlayer_GetStatus();
 
 	int ptr = GetPtr();

@@ -13,5 +13,6 @@ extern tracker_t tracker;
 void MoveCursor(int amount);
 void InsertNote(int note);
 void StopSelection();
+void CheckSelection(int mod);
 void ParseKey(int mod, int scancode);
 void RenderTracker();

@@ -21,12 +21,16 @@ kbdshortcut_t shortcuts[] = {
 	{ KMOD_LCTRL | KMOD_LSHIFT, SDL_SCANCODE_S, file_save_as },
 	{ KMOD_LCTRL, SDL_SCANCODE_S, file_save },
 	{ KMOD_LCTRL, SDL_SCANCODE_Q, file_quit },
+
 	{ 0, SDL_SCANCODE_F5, player_resume_pause },
 	{ 0, SDL_SCANCODE_F6, player_restart },
 	{ 0, SDL_SCANCODE_F7, player_pattern },
 	{ 0, SDL_SCANCODE_F8, player_stop },
+
+	{ KMOD_LCTRL, SDL_SCANCODE_A, edit_select_all },
 	{ 0, SDL_SCANCODE_F9, edit_octave_down },
 	{ 0, SDL_SCANCODE_F10, edit_octave_up },
+
 	{ 0, SDL_SCANCODE_F11, track_remove_order },
 	{ 0, SDL_SCANCODE_F12, track_add_order },
 };

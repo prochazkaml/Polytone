@@ -13,7 +13,7 @@ diskio.o: diskio.h sdl.h tracker.h MTPlayer/mtplayer.h
 tracker.o: tracker.h sdl.h MTPlayer/mtplayer.h diskio.h
 menu/file.o: menu/file.h menu/player.h menu.h diskio.h libs/tinyfiledialogs.h
 menu/player.o: menu/player.h menu.h diskio.h tracker.h MTPlayer/mtplayer.h
-menu/edit.o: menu/edit.h menu.h tracker.h
+menu/edit.o: menu/edit.h menu.h tracker.h MTPlayer/mtplayer.h
 menu/track.o: menu/track.h menu.h tracker.h diskio.h MTPlayer/mtplayer.h menu/player.h
 menu/help.o: menu/help.h menu.h
 libs/tinyfiledialogs.o: libs/tinyfiledialogs.h
