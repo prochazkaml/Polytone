@@ -12,7 +12,7 @@ SDL_Window *window;
 SDL_Surface *surface, *subsurface;
 SDL_Renderer *renderer;
 uint32_t *screen;
-int samples;
+int samples, playing = 0, immnote, immnotedelay = 0;
 
 int VIDEO_SCALE = 2;
 
@@ -24,11 +24,20 @@ SDL_AudioSpec sdl_audio = {
 };
 
 void audio_callback(void *data, uint8_t *stream, int len) {
-	samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
+	memset(stream, 0, len);
 
-	tracker.row = tracker.s->row;
-	tracker.order = tracker.s->order;
-	tracker.update = 1;
+	if(playing) {
+		samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
+
+		tracker.row = tracker.s->row;
+		tracker.order = tracker.s->order;
+		tracker.update = 1;
+	}
+
+	if(immnotedelay) {
+		MTPlayer_PlayNoteInt16(immnote, (int16_t *)stream, len / 2, sdl_audio.freq);
+		immnotedelay--;
+	}
 }
 
 void Init() {
@@ -53,8 +62,9 @@ void Init() {
 	sdl_audio.callback = audio_callback;
 	SDL_OpenAudio(&sdl_audio, 0);
 
+	SDL_PauseAudio(0);
+
 	atexit(SDL_Quit);
-//	SDL_PauseAudio(0);
 
 	DrawBG();
 

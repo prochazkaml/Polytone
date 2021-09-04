@@ -1,5 +1,5 @@
 #include "player.h"
-#include <SDL2/SDL.h>
+#include "../sdl.h"
 #include "../diskio.h"
 #include "../tracker.h"
 
@@ -21,7 +21,7 @@ void player_resume_pause() {
 	songstatus_t old;
 
 	if(raw_mt != NULL) {
-		if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
+		if(!playing) {
 			memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
 			memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 
@@ -62,9 +62,9 @@ void player_resume_pause() {
 				}
 			}
 
-			SDL_PauseAudio(0);
+			playing = 1;
 		} else {
-			SDL_PauseAudio(1);
+			playing = 0;
 			UpdateStatus("Paused.");
 			tracker.update = 1;
 		}
@@ -75,19 +75,18 @@ void player_resume_pause() {
 
 void player_restart() {
 	if(raw_mt != NULL) {
-		SDL_PauseAudio(1);
+		playing = 0;
 		MTPlayer_Init(raw_mt);
 		memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
 		memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
-		SDL_PauseAudio(0);
+		playing = 1;
 	} else {
 		UpdateStatus("There is nothing to restart.");
 	}
 }
 
 void player_pattern() {
-	SDL_PauseAudio(1);
-
+	playing = 0;
 	tracker.row = 0;
 
 	player_resume_pause();
@@ -95,7 +94,7 @@ void player_pattern() {
 
 void player_stop() {
 	if(raw_mt != NULL) {
-		SDL_PauseAudio(1);
+		playing = 0;
 		MTPlayer_Init(raw_mt);
 		UpdateStatus("Stopped.");
 	} else {

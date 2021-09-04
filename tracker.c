@@ -285,7 +285,7 @@ void ParseKey(int mod, int scancode) {
 
 	printf("%d %d\n", mod, scancode);
 
-	if(SDL_GetAudioStatus() != SDL_AUDIO_PLAYING) {
+	if(!playing) {
 		// Parse editor keys
 		
 		switch(scancode) {
@@ -421,6 +421,9 @@ void ParseKey(int mod, int scancode) {
 						StopSelection();
 						int note = i + tracker.octave * 12 - 8;
 						if(note > 0 && note <= 88) {
+							immnotedelay = 3;
+							immnote = note;
+
 							InsertNote(note);
 							MoveCursor(1);
 						}
@@ -561,7 +564,7 @@ void RenderTracker() {
 
 		Printf(8, 23, WHITE, "%02X", tracker.s->ordertable[tracker.order]);
 
-		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
+		if(playing) {
 			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
 				samples / 100, samples % 100, tracker.s->tempo, tracker.s->audiospeed);
 
