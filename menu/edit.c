@@ -1,4 +1,5 @@
 #include "edit.h"
+#include "player.h"
 #include "../diskio.h"
 #include "../tracker.h"
 
@@ -20,6 +21,8 @@ void (*submenu_edit_fn[])() = {
 };
 
 void edit_cut() {
+	player_stop();
+
 	if(raw_mt == NULL || !tracker.selected) {
 		UpdateStatus("There is nowhere to cut from.");
 		return;
@@ -34,6 +37,8 @@ void edit_cut() {
 #define append(s, ...) sprintf(s + strlen(s), __VA_ARGS__)
 
 void edit_copy() {
+	player_stop();
+
 	if(raw_mt == NULL || !tracker.selected) {
 		UpdateStatus("There is nowhere to copy from.");
 		return;
@@ -73,6 +78,8 @@ void edit_copy() {
 }
 
 void edit_paste() {
+	player_stop();
+
 	if(raw_mt == NULL) {
 		UpdateStatus("There is nowhere to paste to.");
 		return;
@@ -124,6 +131,8 @@ void edit_paste() {
 }
 
 void edit_select_all() {
+	player_stop();
+
 	if(raw_mt == NULL) {
 		UpdateStatus("There is nothing to select.");
 		return;
