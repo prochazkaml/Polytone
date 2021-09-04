@@ -91,6 +91,48 @@ int IsDualslotEffect() {
 	return (status->data[GetPtr()] & 0x00C0) ? 0 : 1;
 }
 
+int GetData(int col) {
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int ptr = GetPtr();
+
+	uint16_t data = status->data[ptr];
+
+	switch(col) {
+		case 0:
+			data >>= 9;
+			data &= 0x7F;
+			break;
+
+		case 1:
+			data >>= 6;
+			data &= 0x7;
+			break;
+
+		case 2:
+			if(IsDualslotEffect()) {
+				data >>= 3;
+				data &= 0x7;
+			} else {
+				data >>= 4;
+				data &= 0x3;
+			}
+
+			break;
+
+		case 3:
+			if(IsDualslotEffect()) {
+				data &= 0x7;
+			} else {
+				data &= 0xF;
+			}
+
+			break;
+	}
+
+	return data;
+}
+
 void PutData(int col, int val) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
