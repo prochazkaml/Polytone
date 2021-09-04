@@ -21,6 +21,7 @@ void PutData(int col, int val);
 int GetData(int col);
 void StopSelection();
 void CheckSelection(int mod);
+void UpdateSelectedBox();
 int DeleteSelectedBox();
 void ParseKey(int mod, int scancode);
 void RenderTracker();

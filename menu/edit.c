@@ -23,7 +23,7 @@ void (*submenu_edit_fn[])() = {
 void edit_cut() {
 	player_stop();
 
-	if(raw_mt == NULL || !tracker.selected) {
+	if(raw_mt == NULL) {
 		UpdateStatus("There is nowhere to cut from.");
 		return;
 	}
@@ -39,10 +39,13 @@ void edit_cut() {
 void edit_copy() {
 	player_stop();
 
-	if(raw_mt == NULL || !tracker.selected) {
+	if(raw_mt == NULL) {
 		UpdateStatus("There is nowhere to copy from.");
 		return;
 	}
+
+	CheckSelection(KMOD_SHIFT);
+	UpdateSelectedBox();
 
 	char str[16384] = "POLYTONE_CLIPBOARD\n";	// 16k should be enough, right?
 
@@ -56,7 +59,6 @@ void edit_copy() {
 	for(int r = tracker._selrow0; r <= tracker._selrow1; r++) {
 		append(str, "\n");
 		tracker.row = r;
-
 
 		for(int i = tracker._selchannel0 * 4 + tracker._selcolumn0;
 			i <= tracker._selchannel1 * 4 + tracker._selcolumn1; i++) {
