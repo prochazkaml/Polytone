@@ -10,9 +10,14 @@ typedef struct {
 
 extern tracker_t tracker;
 
+#define InsertNote(x) PutData(0, x)
+#define InsertEffect(x) PutData(1, x)
+#define InsertEffectValue(pos, x) PutData(2 + pos, x)
+
 void MoveCursor(int amount);
-void InsertNote(int note);
+void PutData(int col, int val);
 void StopSelection();
 void CheckSelection(int mod);
+int DeleteSelectedBox();
 void ParseKey(int mod, int scancode);
 void RenderTracker();

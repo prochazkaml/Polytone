@@ -91,64 +91,56 @@ int IsDualslotEffect() {
 	return (status->data[GetPtr()] & 0x00C0) ? 0 : 1;
 }
 
-void InsertNote(int note) {
+void PutData(int col, int val) {
 	songstatus_t *status = MTPlayer_GetStatus();
 
 	int ptr = GetPtr();
 
 	uint16_t data = status->data[ptr];
 
-	data &= 0x1FF;
-	data |= (note & 0x7F) << 9;
+	switch(col) {
+		case 0:
+			data &= 0x1FF;
+			data |= (val & 0x7F) << 9;
 
-	status->data[ptr] = data;
+			status->data[ptr] = data;
+			break;
 
-	MoveCursor(1);
-}
+		case 1:
+			data &= 0xFE3F;
+			data |= (val & 7) << 6;
 
-void InsertEffectValue(int pos, int val) {
-	songstatus_t *status = MTPlayer_GetStatus();
+			status->data[ptr] = data;
 
-	int ptr = GetPtr();
+			if((data & 0x3F) == 0 && val == 0) {
+				PutData(2, 4);
+				PutData(3, 7);
+			}
 
-	uint16_t data = status->data[ptr];
+			break;
 
-	if(IsDualslotEffect()) {
-		if(!pos) {
-			data &= 0xFFC7;
-			data |= (val & 7) << 3;
-		} else {
-			data &= 0xFFF8;
-			data |= val & 7;
-		}
-	} else {
-		if(!pos) {
-			data &= 0xFFCF;
-			data |= (val & 3) << 4;
-		} else {
-			data &= 0xFFF0;
-			data |= val & 0xF;
-		}
-	}
+		case 2:
+		case 3:
+			if(IsDualslotEffect()) {
+				if(col == 2) {
+					data &= 0xFFC7;
+					data |= (val & 7) << 3;
+				} else {
+					data &= 0xFFF8;
+					data |= val & 7;
+				}
+			} else {
+				if(col == 2) {
+					data &= 0xFFCF;
+					data |= (val & 3) << 4;
+				} else {
+					data &= 0xFFF0;
+					data |= val & 0xF;
+				}
+			}
 
-	status->data[ptr] = data;
-}
-
-void InsertEffect(int eff) {
-	songstatus_t *status = MTPlayer_GetStatus();
-
-	int ptr = GetPtr();
-
-	uint16_t data = status->data[ptr];
-
-	data &= 0xFE3F;
-	data |= (eff & 7) << 6;
-
-	status->data[ptr] = data;
-
-	if((data & 0x3F) == 0 && eff == 0) {
-		InsertEffectValue(0, 4);
-		InsertEffectValue(1, 7);
+			status->data[ptr] = data;
+			break;
 	}
 }
 
@@ -345,6 +337,7 @@ void ParseKey(int mod, int scancode) {
 			case SDL_SCANCODE_SPACE:
 				StopSelection();
 				InsertNote(0x7F);
+				MoveCursor(1);
 				break;
 
 			case SDL_SCANCODE_BACKSPACE:
@@ -355,11 +348,11 @@ void ParseKey(int mod, int scancode) {
 						InsertEffect(0);
 						InsertEffectValue(0, 0);
 						InsertEffectValue(1, 0);
-					
-						MoveCursor(1);
 					} else {
 						InsertNote(0);
 					}
+
+					MoveCursor(1);
 				}
 
 				break;
@@ -400,7 +393,11 @@ void ParseKey(int mod, int scancode) {
 					if(scancode == notekeys[i]) {
 						StopSelection();
 						int note = i + tracker.octave * 12 - 8;
-						if(note > 0 && note <= 88) InsertNote(note);
+						if(note > 0 && note <= 88) {
+							InsertNote(note);
+							MoveCursor(1);
+						}
+
 						break;
 					}
 				}
