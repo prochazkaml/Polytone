@@ -1,4 +1,5 @@
 #include "edit.h"
+#include "../diskio.h"
 #include "../tracker.h"
 #include "../MTPlayer/mtplayer.h"
 
@@ -15,10 +16,122 @@ menu_t submenu_edit = {
 }};
 
 void (*submenu_edit_fn[])() = {
-	NULL, NULL, NULL, edit_select_all, edit_octave_up, edit_octave_down
+	edit_cut, edit_copy, edit_paste,
+	edit_select_all, edit_octave_up, edit_octave_down
 };
 
+void edit_cut() {
+	if(raw_mt == NULL || !tracker.selected) {
+		UpdateStatus("There is nowhere to cut from.");
+		return;
+	}
+
+	edit_copy();
+	UpdateStatus("Cut %d rows.", DeleteSelectedBox());
+
+	tracker.update = 1;
+}
+
+#define append(s, ...) sprintf(s + strlen(s), __VA_ARGS__)
+
+void edit_copy() {
+	if(raw_mt == NULL || !tracker.selected) {
+		UpdateStatus("There is nowhere to copy from.");
+		return;
+	}
+
+	char str[16384] = "POLYTONE_CLIPBOARD\n";	// 16k should be enough, right?
+
+	append(str, "%d %d %d %d",
+		tracker._selrow1 - tracker._selrow0 + 1,
+		tracker._selchannel1 - tracker._selchannel0 + 1,
+		tracker._selcolumn0, tracker._selcolumn1);
+
+	int oldch = tracker.channel, oldrow = tracker.row;
+
+	for(int r = tracker._selrow0; r <= tracker._selrow1; r++) {
+		append(str, "\n");
+		tracker.row = r;
+
+
+		for(int i = tracker._selchannel0 * 4 + tracker._selcolumn0;
+			i <= tracker._selchannel1 * 4 + tracker._selcolumn1; i++) {
+
+			tracker.channel = i / 4;
+
+			append(str, "%d ", GetData(i % 4));
+		}
+	}
+
+	SDL_SetClipboardText(str);
+
+	tracker.selected = 0;
+	tracker.channel = oldch;
+	tracker.row = oldrow;
+	tracker.update = 1;
+
+	UpdateStatus("Copied %d rows.", tracker._selrow1 - tracker._selrow0 + 1);
+}
+
+void edit_paste() {
+	if(raw_mt == NULL) {
+		UpdateStatus("There is nowhere to paste to.");
+		return;
+	}
+
+	tracker.selected = 0;
+
+	char *str = SDL_GetClipboardText();
+	char *data = str + 19;
+
+	if(str == NULL) {
+		UpdateStatus("Error pasting: %s", SDL_GetError());
+		return;
+	}
+
+	int rows = strtol(data, &data, 10),
+		channels = strtol(data, &data, 10),
+		col0 = strtol(data, &data, 10),
+		col1 = strtol(data, &data, 10);
+
+	if(memcmp(str, "POLYTONE_CLIPBOARD\n", 19)) {
+		UpdateStatus("The clipboard contains invalid data.");
+		return;
+	}
+	
+	songstatus_t *status = MTPlayer_GetStatus();
+
+	int oldch = tracker.channel, oldrow = tracker.row;
+
+	if(oldrow + rows > 0x40) rows = 0x40 - oldrow; 
+	if(oldch + channels > status->channels)
+		channels = status->channels - oldch;
+
+	for(int r = 0; r < rows; r++) {
+		for(int i = col0; i <= (channels - 1) * 4 + col1; i++) {
+			tracker.row = r + oldrow;
+			tracker.channel = i / 4 + oldch;
+
+			PutData(i % 4, strtol(data, &data, 10));
+		}
+	}
+
+	UpdateStatus("Pasted %d rows.", rows);
+
+	tracker.channel = oldch;
+	tracker.row = (rows + oldrow) & 0x3F;
+
+	tracker.update = 1;
+
+	SDL_free(str);
+}
+
 void edit_select_all() {
+	if(raw_mt == NULL) {
+		UpdateStatus("There is nothing to select.");
+		return;
+	}
+
 	songstatus_t *status = MTPlayer_GetStatus();
 	
 	// That's right, we're gonna cheat

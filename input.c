@@ -27,6 +27,9 @@ kbdshortcut_t shortcuts[] = {
 	{ 0, SDL_SCANCODE_F7, player_pattern },
 	{ 0, SDL_SCANCODE_F8, player_stop },
 
+	{ KMOD_LCTRL, SDL_SCANCODE_X, edit_cut },
+	{ KMOD_LCTRL, SDL_SCANCODE_C, edit_copy },
+	{ KMOD_LCTRL, SDL_SCANCODE_V, edit_paste },
 	{ KMOD_LCTRL, SDL_SCANCODE_A, edit_select_all },
 	{ 0, SDL_SCANCODE_F9, edit_octave_down },
 	{ 0, SDL_SCANCODE_F10, edit_octave_up },

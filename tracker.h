@@ -16,6 +16,7 @@ extern tracker_t tracker;
 
 void MoveCursor(int amount);
 void PutData(int col, int val);
+int GetData(int col);
 void StopSelection();
 void CheckSelection(int mod);
 int DeleteSelectedBox();
