@@ -3,7 +3,6 @@
 #include "sdl.h"
 #include "diskio.h"
 #include "tracker.h"
-#include "MTPlayer/mtplayer.h"
 #include "libs/lz4.h"
 
 uint8_t *raw_mt = NULL;
@@ -32,6 +31,7 @@ int InitMON(char *filename) {
 	tracker.channel = 0;
 	tracker.update = 1;
 	tracker.selected = 0;
+	tracker.s = MTPlayer_GetStatus();
 
 	UpdateStatus("%s loaded!", basename(filename));
 	return 0;
@@ -74,8 +74,6 @@ int SaveMON(char *filename) {
 	 * 1: Could not save file
 	 */
 
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	FILE *mt = fopen(filename, "wb");
 
 	if(mt == NULL) {
@@ -93,7 +91,7 @@ int SaveMON(char *filename) {
 
 	raw_mt[0x5C] = ++pats;
 
-	fwrite(raw_mt, 1, 0x15F + pats * 64 * status->channels * 2, mt);
+	fwrite(raw_mt, 1, 0x15F + pats * 64 * tracker.s->channels * 2, mt);
 	fclose(mt);
 
 	lastname = filename;

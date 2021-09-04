@@ -1,7 +1,6 @@
 #include "tracker.h"
 #include "sdl.h"
 #include "diskio.h"
-#include "MTPlayer/mtplayer.h"
 
 tracker_t tracker;
 
@@ -52,8 +51,6 @@ const int offsetstart[] = { 4, 36, 44, 52 };
 const int offsetend[] = { 28, 44, 52, 60 };
 
 void MoveCursor(int amount) {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	tracker.row += amount;
 
 	if(amount > 0) {
@@ -63,7 +60,7 @@ void MoveCursor(int amount) {
 			tracker.row -= 0x40;
 			tracker.order++;
 
-			if(tracker.order >= status->orders) tracker.order = 0; 
+			if(tracker.order >= tracker.s->orders) tracker.order = 0; 
 		}
 	} else if(amount < 0) {
 		if(tracker.selected) {
@@ -72,31 +69,25 @@ void MoveCursor(int amount) {
 			tracker.row += 0x40;
 			tracker.order--;
 
-			if(tracker.order < 0) tracker.order = status->orders - 1;
+			if(tracker.order < 0) tracker.order = tracker.s->orders - 1;
 		}
 	}
 }
 
 int GetPtr() {
-	songstatus_t *status = MTPlayer_GetStatus();
-
-	return (status->ordertable[tracker.order] * 64 + tracker.row) * status->channels + tracker.channel;
+	return (tracker.s->ordertable[tracker.order] * 64 + tracker.row) * tracker.s->channels + tracker.channel;
 }
 
 int IsDualslotEffect() {
 	// Checks if the current effect is either 0XY or 4XY.
 
-	songstatus_t *status = MTPlayer_GetStatus();
-
-	return (status->data[GetPtr()] & 0x00C0) ? 0 : 1;
+	return (tracker.s->data[GetPtr()] & 0x00C0) ? 0 : 1;
 }
 
 int GetData(int col) {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	int ptr = GetPtr();
 
-	uint16_t data = status->data[ptr];
+	uint16_t data = tracker.s->data[ptr];
 
 	switch(col) {
 		case 0:
@@ -134,25 +125,23 @@ int GetData(int col) {
 }
 
 void PutData(int col, int val) {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	int ptr = GetPtr();
 
-	uint16_t data = status->data[ptr];
+	uint16_t data = tracker.s->data[ptr];
 
 	switch(col) {
 		case 0:
 			data &= 0x1FF;
 			data |= (val & 0x7F) << 9;
 
-			status->data[ptr] = data;
+			tracker.s->data[ptr] = data;
 			break;
 
 		case 1:
 			data &= 0xFE3F;
 			data |= (val & 7) << 6;
 
-			status->data[ptr] = data;
+			tracker.s->data[ptr] = data;
 
 			if((data & 0x3F) == 0 && val == 0) {
 				PutData(2, 4);
@@ -181,7 +170,7 @@ void PutData(int col, int val) {
 				}
 			}
 
-			status->data[ptr] = data;
+			tracker.s->data[ptr] = data;
 			break;
 	}
 }
@@ -276,16 +265,14 @@ int DeleteSelectedBox() {
 }
 
 void MoveDataUp() {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	int ptr = GetPtr();
 
 	for(int i = tracker.row; i < 0x3F; i++) {
-		status->data[ptr] = status->data[ptr + status->channels];
-		ptr += status->channels;
+		tracker.s->data[ptr] = tracker.s->data[ptr + tracker.s->channels];
+		ptr += tracker.s->channels;
 	}
 
-	status->data[ptr] = 0;
+	tracker.s->data[ptr] = 0;
 
 }
 
@@ -293,8 +280,6 @@ void ParseKey(int mod, int scancode) {
 	for(int i = 0; i < sizeof(ignorekeys); i++) {
 		if(scancode == ignorekeys[i]) return;
 	}
-
-	songstatus_t *status = MTPlayer_GetStatus();
 
 	int ptr = GetPtr();
 
@@ -329,7 +314,7 @@ void ParseKey(int mod, int scancode) {
 					if(tracker.column < 0) {
 						tracker.column = 3;
 						tracker.channel--;
-						if(tracker.channel < 0) tracker.channel = status->channels - 1;
+						if(tracker.channel < 0) tracker.channel = tracker.s->channels - 1;
 					}
 				}
 
@@ -350,7 +335,7 @@ void ParseKey(int mod, int scancode) {
 					if(tracker.column >= 4) {
 						tracker.column = 0;
 						tracker.channel++;
-						if(tracker.channel >= status->channels) tracker.channel = 0;
+						if(tracker.channel >= tracker.s->channels) tracker.channel = 0;
 					}
 				}
 
@@ -402,12 +387,12 @@ void ParseKey(int mod, int scancode) {
 			case SDL_SCANCODE_INSERT:
 				StopSelection();
 				for(int i = 0x3F; i > tracker.row; i--) {
-					ptr = (status->ordertable[tracker.order] * 64 + i) * status->channels + tracker.channel;
+					ptr = (tracker.s->ordertable[tracker.order] * 64 + i) * tracker.s->channels + tracker.channel;
 
-					status->data[ptr] = status->data[ptr - status->channels];
+					tracker.s->data[ptr] = tracker.s->data[ptr - tracker.s->channels];
 				}
 
-				status->data[GetPtr()] = 0;
+				tracker.s->data[GetPtr()] = 0;
 				break;
 
 			case SDL_SCANCODE_DELETE:
@@ -488,7 +473,7 @@ void ParseKey(int mod, int scancode) {
 			else
 				scancode -= SDL_SCANCODE_1;
 
-			status->channel[scancode].enabled ^= 1;
+			tracker.s->channel[scancode].enabled ^= 1;
 		}
 	}
 
@@ -506,11 +491,11 @@ const uint32_t effectcolors[8] = {
 	0xFFB0FFFF, 0xFFB0B0FF, 0xFFB0B0FF, 0xFFFFB0B0
 };
 
-void DrawRow(int y, int order, int row, songstatus_t *status) {
+void DrawRow(int y, int order, int row) {
 	Printf(8, y, WHITE, "%02X", row);
 
-	for(int c = 0; c < status->channels; c++) {
-		uint16_t data = status->data[(status->ordertable[order] * 64 + row) * status->channels + c];
+	for(int c = 0; c < tracker.s->channels; c++) {
+		uint16_t data = tracker.s->data[(tracker.s->ordertable[order] * 64 + row) * tracker.s->channels + c];
 
 		int n = data >> 9;
 		int e = (data >> 6) & 7;
@@ -553,7 +538,6 @@ void DrawRow(int y, int order, int row, songstatus_t *status) {
 #define MIDDLEROW_Y (S_HEIGHT - 8 - TRACKERWIN_Y) / 16 * 8 + TRACKERWIN_Y
 
 void RenderTracker() {
-	songstatus_t *status = MTPlayer_GetStatus();
 	SDL_Rect bar = { .x = 0, .y = TRACKERWIN_Y - BARWIDTH - 1, .w = S_WIDTH, .h = BARWIDTH};
 	SDL_Rect rect = { .x = 0, .y = 8, .w = TRACKERWIN_W, .h = S_HEIGHT - 16 };
 	SDL_Rect order = { .x = TRACKERWIN_W, .y = 8, .w = ORDERWIDTH, .h = S_HEIGHT - 16 };
@@ -575,20 +559,20 @@ void RenderTracker() {
 			PIXEL(i, MIDDLEROW_Y) += 0x303030;
 		}
 
-		Printf(8, 23, WHITE, "%02X", status->ordertable[tracker.order]);
+		Printf(8, 23, WHITE, "%02X", tracker.s->ordertable[tracker.order]);
 
 		if(SDL_GetAudioStatus() == SDL_AUDIO_PLAYING) {
 			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
-				samples / 100, samples % 100, status->tempo, status->audiospeed);
+				samples / 100, samples % 100, tracker.s->tempo, tracker.s->audiospeed);
 
 			tracker.selected = 0;
 
-			for(int c = 0; c < status->channels; c++) {
-				int color = status->channel[c].enabled ? WHITE : 0xFF808080;
+			for(int c = 0; c < tracker.s->channels; c++) {
+				int color = tracker.s->channel[c].enabled ? WHITE : 0xFF808080;
 				Printf(36 + c * 64, 13, color, "Ch %d", c + 1);
-				Printf(36 + c * 64, 23, color, status->channel[c].active ? "%d Hz" : "-", status->channel[c].freq);
+				Printf(36 + c * 64, 23, color, tracker.s->channel[c].active ? "%d Hz" : "-", tracker.s->channel[c].freq);
 
-				int ctr = status->channel[c].ctr;
+				int ctr = tracker.s->channel[c].ctr;
 
 				if(ctr != tracker.old_ctr[c] && tracker.ch_ctr[c] < 14) tracker.ch_ctr[c] = 14;
 
@@ -607,7 +591,7 @@ void RenderTracker() {
 				tracker.old_ctr[c] = ctr;
 			}
 		} else {
-			for(int c = 0; c < status->channels; c++) {
+			for(int c = 0; c < tracker.s->channels; c++) {
 				Printf(36 + c * 64, 13, WHITE, "Ch %d", c + 1);
 				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
 			}
@@ -641,14 +625,14 @@ void RenderTracker() {
 					}
 				}
 
-				DrawRow(y, tracker.order, row, status);
+				DrawRow(y, tracker.order, row);
 			} else {
 				if(!drawn) {
 					if(tracker.order > 0)
-						DrawRow(y, tracker.order - 1, row + 64, status);
+						DrawRow(y, tracker.order - 1, row + 64);
 				} else {
-					if(tracker.order < status->orders - 1)
-						DrawRow(y, tracker.order + 1, row - 64, status);
+					if(tracker.order < tracker.s->orders - 1)
+						DrawRow(y, tracker.order + 1, row - 64);
 				}
 
 				for(int i = 0; i < S_WIDTH * 8; i++) {
@@ -663,15 +647,15 @@ void RenderTracker() {
 		SDL_FillRect(surface, &orderbar, WHITE);
 
 		Printf(TRACKERWIN_W + 5, 13, WHITE, "Order");
-		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, status->orders);
+		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, tracker.s->orders);
 		Printf(TRACKERWIN_W + 5, 33, WHITE, "Oct:%d", tracker.octave);
 
 		int order = tracker.order - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
 
 		for(int y = TRACKERWIN_Y; y < S_HEIGHT - 8; y += 8) {
-			if(order >= 0 && order < status->orders) {
+			if(order >= 0 && order < tracker.s->orders) {
 				Printf(TRACKERWIN_W + 5, y, (order == tracker.order) ? WHITE : 0xFF808080,
-					"%02X:%02X", order, status->ordertable[order]);
+					"%02X:%02X", order, tracker.s->ordertable[order]);
 			}
 
 			order++;

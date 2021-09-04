@@ -2,7 +2,6 @@
 #include "player.h"
 #include "../tracker.h"
 #include "../diskio.h"
-#include "../MTPlayer/mtplayer.h"
 
 menu_t submenu_track = {
 	C(18), C(1), C(24), C(3), 3,
@@ -20,10 +19,9 @@ void (*submenu_track_fn[])() = {
 void track_add_order() {
 	if(raw_mt == NULL) return;
 
-	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
 
-	if(status->orders == 0xFF) return;
+	if(tracker.s->orders == 0xFF) return;
 
 	player_stop();
 
@@ -41,10 +39,9 @@ void track_add_order() {
 void track_remove_order() {
 	if(raw_mt == NULL) return;
 
-	songstatus_t *status = MTPlayer_GetStatus();
 	int i;
 
-	if(status->orders == 1) return;
+	if(tracker.s->orders == 1) return;
 
 	player_stop();
 
@@ -60,11 +57,9 @@ void track_remove_order() {
 }
 
 void track_change_channels() {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	if(raw_mt == NULL) return;
 
-	dialog_numberparam_t params = { status->channels, 1, 12 };
+	dialog_numberparam_t params = { tracker.s->channels, 1, 12 };
 
 	dialog_t dialog = {
 		DIALOG_NUMBERINPUT,
@@ -87,11 +82,11 @@ void track_change_channels() {
 	};
 
 	if(!DrawDialog(&dialog)) {
-		int channels = params.def, old = status->channels;
+		int channels = params.def, old = tracker.s->channels;
 
-		if(channels == status->channels) {
+		if(channels == tracker.s->channels) {
 			DrawDialog(&nothing);
-		} else if(channels > status->channels) {
+		} else if(channels > tracker.s->channels) {
 			player_stop();
 
 			// Expand the pattern data, start from the end
@@ -99,13 +94,13 @@ void track_change_channels() {
 			int src = 255 * 64 * old - 1, dest, diff = channels - old;
 
 			for(dest = 255 * 64 * channels - 1 - diff; dest > 0; dest--, src--) {
-				status->data[dest] = status->data[src];
+				tracker.s->data[dest] = tracker.s->data[src];
 
 				if(src % old == 0) {
 					dest -= diff;
 
 					// Clear the free space
-					memset(status->data + dest, 0, diff * 2);
+					memset(tracker.s->data + dest, 0, diff * 2);
 				}
 			}
 
@@ -113,7 +108,7 @@ void track_change_channels() {
 			MTPlayer_Init(raw_mt);
 
 			DrawDialog(&ok);
-		} else if(channels < status->channels) {
+		} else if(channels < tracker.s->channels) {
 			player_stop();
 
 			// Shrink the pattern data, start from the start
@@ -124,14 +119,14 @@ void track_change_channels() {
 				if(dest % channels == 0 && dest != 0)
 					src += diff;
 
-				status->data[dest] = status->data[src];
+				tracker.s->data[dest] = tracker.s->data[src];
 			}
 
 			raw_mt[0x5D] = channels;
 			MTPlayer_Init(raw_mt);
 
-			if(tracker.channel >= status->channels) 
-				tracker.channel = status->channels - 1;
+			if(tracker.channel >= tracker.s->channels) 
+				tracker.channel = tracker.s->channels - 1;
 
 			DrawDialog(&ok);
 		}

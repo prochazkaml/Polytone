@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "sdl.h"
-#include "MTPlayer/mtplayer.h"
 #include "assets/font.h"
 #include "assets/intro.h"
 #include "assets/icon.h"
@@ -25,12 +24,10 @@ SDL_AudioSpec sdl_audio = {
 };
 
 void audio_callback(void *data, uint8_t *stream, int len) {
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
 
-	tracker.row = status->row;
-	tracker.order = status->order;
+	tracker.row = tracker.s->row;
+	tracker.order = tracker.s->order;
 	tracker.update = 1;
 }
 

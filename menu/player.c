@@ -1,6 +1,5 @@
 #include "player.h"
 #include <SDL2/SDL.h>
-#include "../MTPlayer/mtplayer.h"
 #include "../diskio.h"
 #include "../tracker.h"
 
@@ -19,7 +18,6 @@ void (*submenu_player_fn[])() = {
 };
 
 void player_resume_pause() {
-	songstatus_t *status = MTPlayer_GetStatus();
 	songstatus_t old;
 
 	if(raw_mt != NULL) {
@@ -27,37 +25,37 @@ void player_resume_pause() {
 			memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
 			memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 
-			if(tracker.row != status->row || tracker.order != status->order) {
+			if(tracker.row != tracker.s->row || tracker.order != tracker.s->order) {
 				MTPlayer_Init(raw_mt);
 
-				memcpy(&old, status, sizeof(songstatus_t));
+				memcpy(&old, tracker.s, sizeof(songstatus_t));
 					
 				int i, j;
 
 				while(1) {
-					if((i = status->order * 64 + status->row) >= (tracker.order * 64 + tracker.row)) {
-						memcpy(status, &old, sizeof(songstatus_t));
+					if((i = tracker.s->order * 64 + tracker.s->row) >= (tracker.order * 64 + tracker.row)) {
+						memcpy(tracker.s, &old, sizeof(songstatus_t));
 						break;
 					}
 
-					memcpy(&old, status, sizeof(songstatus_t));
+					memcpy(&old, tracker.s, sizeof(songstatus_t));
 					
 					MTPlayer_ProcessTick();
 
-					if(status->order * 64 + status->row != i) {
+					if(tracker.s->order * 64 + tracker.s->row != i) {
 						j = 0;
 					} else {
 						j++;
 					}
 
-					if(j > 33 || status->order * 64 + status->row < i) {
+					if(j > 33 || tracker.s->order * 64 + tracker.s->row < i) {
 						// Fallback if the tracker returned to the start
 						// or if it got stuck on a single line
 
 						MTPlayer_Init(raw_mt);
 						
-						status->order = tracker.order;
-						status->row = tracker.row - 1;
+						tracker.s->order = tracker.order;
+						tracker.s->row = tracker.row - 1;
 
 						break;
 					}

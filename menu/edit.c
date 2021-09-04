@@ -1,7 +1,6 @@
 #include "edit.h"
 #include "../diskio.h"
 #include "../tracker.h"
-#include "../MTPlayer/mtplayer.h"
 
 menu_t submenu_edit = {
 	C(13), C(1), C(19), C(6), 6,
@@ -99,13 +98,11 @@ void edit_paste() {
 		return;
 	}
 	
-	songstatus_t *status = MTPlayer_GetStatus();
-
 	int oldch = tracker.channel, oldrow = tracker.row;
 
 	if(oldrow + rows > 0x40) rows = 0x40 - oldrow; 
-	if(oldch + channels > status->channels)
-		channels = status->channels - oldch;
+	if(oldch + channels > tracker.s->channels)
+		channels = tracker.s->channels - oldch;
 
 	for(int r = 0; r < rows; r++) {
 		for(int i = col0; i <= (channels - 1) * 4 + col1; i++) {
@@ -132,14 +129,12 @@ void edit_select_all() {
 		return;
 	}
 
-	songstatus_t *status = MTPlayer_GetStatus();
-	
 	// That's right, we're gonna cheat
 	tracker.selected = 0;
 	CheckSelection(KMOD_SHIFT);
 
 	tracker._selchannel0 = 0;
-	tracker._selchannel1 = status->channels - 1;
+	tracker._selchannel1 = tracker.s->channels - 1;
 	tracker._selrow0 = 0;
 	tracker._selrow1 = 0x3F;
 	tracker._selcolumn0 = 0;
