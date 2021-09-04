@@ -261,6 +261,8 @@ int DeleteSelectedBox() {
 	tracker.channel = tracker._selchannel0;
 	tracker.column = tracker._selcolumn0;
 
+	UpdateStatus("The current selection's data was cleared.");
+
 	return tracker._selrow1 - tracker._selrow0 + 1;
 }
 
