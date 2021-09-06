@@ -341,12 +341,12 @@ void ParseKey(int mod, int scancode) {
 				StopSelection();
 
 				for(int i = 0x3F; i > tracker.row; i--) {
-					currpat[i][buffer->channels] = currpat[i - 1][buffer->channels];
+					currpat[i][tracker.channel] = currpat[i - 1][tracker.channel];
 				}
 
-				currrow[buffer->channels].note = 0;
-				currrow[buffer->channels].effect = 0;
-				currrow[buffer->channels].effectval = 0;
+				currrow[tracker.channel].note = 0;
+				currrow[tracker.channel].effect = 0;
+				currrow[tracker.channel].effectval = 0;
 				break;
 
 			case SDL_SCANCODE_DELETE:
