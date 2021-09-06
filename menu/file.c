@@ -90,7 +90,9 @@ void file_open() {
 }
 
 void file_save() {
-	if(buffer == NULL || lastname == NULL) {
+	if(buffer == NULL || lastname == NULL ||
+		strcasecmp(lastname + strlen(lastname) - 4, ".pol")) {
+		
 		file_save_as();
 	} else {
 		player_stop();
