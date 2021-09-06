@@ -27,7 +27,7 @@ void audio_callback(void *data, uint8_t *stream, int len) {
 	memset(stream, 0, len);
 
 	if(playing) {
-		samples = MTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
+		samples = PTPlayer_PlayInt16((int16_t *)stream, len / 2, sdl_audio.freq) / (sdl_audio.freq / 100);
 
 		tracker.row = tracker.s->row;
 		tracker.order = tracker.s->order;
@@ -35,7 +35,7 @@ void audio_callback(void *data, uint8_t *stream, int len) {
 	}
 
 	if(immnotedelay) {
-		MTPlayer_PlayNoteInt16(immnote, (int16_t *)stream, len / 2, sdl_audio.freq);
+		PTPlayer_PlayNoteInt16(immnote, (int16_t *)stream, len / 2, sdl_audio.freq);
 		immnotedelay--;
 	}
 }
@@ -137,7 +137,7 @@ void _Invert(SDL_Surface *surface, int x, int y, int h, uint32_t fg, uint32_t bg
 }
 
 void RenderFrame() {
-	if(raw_mt != NULL) RenderTracker();
+	if(buffer != NULL) RenderTracker();
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);

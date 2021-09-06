@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 	Init();
 
 	if(argc == 2) {
-		LoadMON(argv[1]);
+		LoadPOL(argv[1]);
 	}
 
 	while(1) {

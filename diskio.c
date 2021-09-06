@@ -5,20 +5,26 @@
 #include "tracker.h"
 #include "libs/lz4.h"
 
-uint8_t *raw_mt = NULL;
+buffer_t *buffer = NULL;
 char *lastname = NULL;
 
+#define put(x) *(out++) = x
+
 void Reset() {
-	if(raw_mt != NULL) {
-		free(raw_mt);
-		raw_mt = NULL;
+	if(buffer != NULL) {
+		free(buffer);
+		buffer = NULL;
 	}
 
 	DrawBG();
 }
 
-int InitMON(char *filename) {
-	if(!MTPlayer_Init(raw_mt)) {
+int InitPOL(char *filename, uint8_t *data) {
+	if(buffer == NULL) {
+		buffer = malloc(sizeof(buffer_t));
+	}
+
+	if(PTPlayer_UnpackFile(data, buffer)) {
 		UpdateStatus("%s is invalid!", basename(filename));
 		Reset();
 		return 2;
@@ -31,13 +37,13 @@ int InitMON(char *filename) {
 	tracker.channel = 0;
 	tracker.update = 1;
 	tracker.selected = 0;
-	tracker.s = MTPlayer_GetStatus();
+	tracker.s = PTPlayer_GetStatus();
 
 	UpdateStatus("%s loaded!", basename(filename));
 	return 0;
 }
 
-int LoadMON(char *filename) {
+int LoadPOL(char *filename) {
 	/*
 	 * Return values:
 	 * 0: OK
@@ -45,29 +51,39 @@ int LoadMON(char *filename) {
 	 * 2: File contents invalid
 	 */
 
-	FILE *mt = fopen(filename, "rb");
 
-	if(mt == NULL) {
+
+	FILE *pt = fopen(filename, "rb");
+
+	if(pt == NULL) {
 		UpdateStatus("Could not open %s!", basename(filename));
 		Reset();
 		return 1;
 	}
 
-	if(raw_mt == NULL) {
-		raw_mt = malloc(MAX_MT_SIZE);
+	if(buffer == NULL) {
+		buffer = malloc(sizeof(buffer_t));
 	}
 
-	memset(raw_mt, 0, MAX_MT_SIZE);
+	fseek(pt, 0, SEEK_END);
+	int size = ftell(pt);
+	fseek(pt, 0, SEEK_SET);
 
-	fread(raw_mt, 1, MAX_MT_SIZE, mt);
-	fclose(mt);
+	uint8_t *data = malloc(size);
+
+	fread(data, 1, size, pt);
+	fclose(pt);
 
 	lastname = filename;
 
-	return InitMON(filename);
+	int ret = InitPOL(filename, data);
+
+	free(data);
+
+	return ret;
 }
 
-int SaveMON(char *filename) {
+int SavePOL(char *filename) {
 	/*
 	 * Return values:
 	 * 0: OK
@@ -81,18 +97,104 @@ int SaveMON(char *filename) {
 		return 1;
 	}
 
+	uint8_t *data = malloc(MAX_PT_SIZE);
+	uint8_t *out = data + 0xD + buffer->orders;
+
+	uint8_t oldeff[16];
+
 	// Calculate the number of patterns
 
 	int pats = 0;
 
-	for(int i = 0x5F; i < 0x15F; i++) {
-		if(raw_mt[i] > pats && raw_mt[i] != 0xFF) pats = raw_mt[i];
+	for(int i = 0; i < buffer->orders; i++) {
+		if(buffer->ordertable[i] > pats) pats = buffer->ordertable[i];
 	}
 
-	raw_mt[0x5C] = ++pats;
+	// Generate a valid header
 
-	fwrite(raw_mt, 1, 0x15F + pats * 64 * tracker.s->channels * 2, mt);
+	memcpy(data, "\x08POLYTONE\x01", 10);
+
+	data[0xA] = ++pats;
+	data[0xB] = buffer->channels;
+	data[0xC] = buffer->orders;
+
+	memcpy(data + 0xD, buffer->ordertable, buffer->orders);
+
+	// Pack the patterns
+
+	for(int p = 0; p < pats; p++) {
+		memset(oldeff, 0, sizeof(oldeff));
+
+		// Analyze the pattern first
+
+		int lastrow = -1;
+
+		for(int r = 0; r < 64; r++) {
+			for(int c = 0; c < buffer->channels; c++) {
+				if(buffer->data[p][r][c].note || buffer->data[p][r][c].effect ||
+					buffer->data[p][r][c].effectval) lastrow = r;
+			}
+		}
+
+		if(lastrow >= 0) {
+			for(int r = 0; r <= lastrow; r++) {
+				// Analyze the row first
+
+				int lastch = -1;
+
+				for(int c = 0; c < buffer->channels; c++) {
+					if(buffer->data[p][r][c].note || buffer->data[p][r][c].effect ||
+						buffer->data[p][r][c].effectval) lastch = c;
+				}
+
+				if(lastch >= 0) {
+					put((r == lastrow) ? (r | 0x80) : r);
+
+					for(int c = 0; c <= lastch; c++) {
+						unpacked_t d = buffer->data[p][r][c];
+
+						if(d.note || d.effect || d.effectval) {
+							uint8_t i = c;
+
+							if(c == lastch) i |= 0x80;
+							if(d.note) i |= 0x40;
+							if(d.effect || d.effectval) i |= 0x20;
+
+							put(i);
+
+							if(d.note) {
+								put(d.note);
+							}
+
+							if(d.effect || d.effectval) {
+								i = d.effect;
+
+								if(d.effectval == oldeff[c]) {
+									i |= 0xE0;
+									put(i);
+								} else if(d.effectval >= 0xE) {
+									i |= 0xF0;
+									put(i);
+									put(d.effectval);
+								} else {
+									i |= d.effectval << 4;
+									put(i);
+								}
+
+								oldeff[c] = d.effectval;
+							}
+						}
+					}
+				}
+			}
+		} else {
+			put(0xC0);
+		}
+	}
+
+	fwrite(data, 1, out - data, mt);
 	fclose(mt);
+	free(data);
 
 	lastname = filename;
 

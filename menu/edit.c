@@ -23,7 +23,7 @@ void (*submenu_edit_fn[])() = {
 void edit_cut() {
 	player_stop();
 
-	if(raw_mt == NULL) {
+	if(buffer == NULL) {
 		UpdateStatus("There is nowhere to cut from.");
 		return;
 	}
@@ -39,7 +39,7 @@ void edit_cut() {
 void edit_copy() {
 	player_stop();
 
-	if(raw_mt == NULL) {
+	if(buffer == NULL) {
 		UpdateStatus("There is nowhere to copy from.");
 		return;
 	}
@@ -82,7 +82,7 @@ void edit_copy() {
 void edit_paste() {
 	player_stop();
 
-	if(raw_mt == NULL) {
+	if(buffer == NULL) {
 		UpdateStatus("There is nowhere to paste to.");
 		return;
 	}
@@ -110,8 +110,8 @@ void edit_paste() {
 	int oldch = tracker.channel, oldrow = tracker.row;
 
 	if(oldrow + rows > 0x40) rows = 0x40 - oldrow; 
-	if(oldch + channels > tracker.s->channels)
-		channels = tracker.s->channels - oldch;
+	if(oldch + channels > buffer->channels)
+		channels = buffer->channels - oldch;
 
 	for(int r = 0; r < rows; r++) {
 		for(int i = col0; i <= (channels - 1) * 4 + col1; i++) {
@@ -135,7 +135,7 @@ void edit_paste() {
 void edit_select_all() {
 	player_stop();
 
-	if(raw_mt == NULL) {
+	if(buffer == NULL) {
 		UpdateStatus("There is nothing to select.");
 		return;
 	}
@@ -145,7 +145,7 @@ void edit_select_all() {
 	CheckSelection(KMOD_SHIFT);
 
 	tracker._selchannel0 = 0;
-	tracker._selchannel1 = tracker.s->channels - 1;
+	tracker._selchannel1 = buffer->channels - 1;
 	tracker._selrow0 = 0;
 	tracker._selrow1 = 0x3F;
 	tracker._selcolumn0 = 0;

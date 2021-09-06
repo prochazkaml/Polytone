@@ -17,49 +17,50 @@ void (*submenu_track_fn[])() = {
 };
 
 void track_add_order() {
-	if(raw_mt == NULL) return;
+	if(buffer == NULL) return;
 
 	int i;
 
-	if(tracker.s->orders == 0xFF) return;
+	if(buffer->orders == 0x100) return;
 
 	player_stop();
 
 	for(i = 0xFF; i > tracker.order + 1; i--) {
-		raw_mt[0x5F + i] = raw_mt[0x5E + i];
+		buffer->ordertable[i] = buffer->ordertable[i - 1];
 	}
 
-	raw_mt[0x5F + i] = 0;
+	buffer->ordertable[i] = 0;
+	buffer->orders++;
 
-	MTPlayer_Init(raw_mt);
+	PTPlayer_Reset(buffer);
 	MoveCursor(64);
 	tracker.update = 1;
 }
 
 void track_remove_order() {
-	if(raw_mt == NULL) return;
+	if(buffer == NULL) return;
 
 	int i;
 
-	if(tracker.s->orders == 1) return;
+	if(buffer->orders == 1) return;
 
 	player_stop();
 
 	for(i = tracker.order; i < 0xFF; i++) {
-		raw_mt[0x5F + i] = raw_mt[0x60 + i];
+		buffer->ordertable[i] = buffer->ordertable[i + 1];
 	}
 
-	raw_mt[0x15E] = 0xFF;
+	buffer->orders--;
 
-	MTPlayer_Init(raw_mt);
+	PTPlayer_Reset(buffer);
 	if(tracker.order) MoveCursor(-64);
 	tracker.update = 1;
 }
 
 void track_change_channels() {
-	if(raw_mt == NULL) return;
+	if(buffer == NULL) return;
 
-	dialog_numberparam_t params = { tracker.s->channels, 1, 12 };
+	dialog_numberparam_t params = { buffer->channels, 1, 12 };
 
 	dialog_t dialog = {
 		DIALOG_NUMBERINPUT,
@@ -82,51 +83,34 @@ void track_change_channels() {
 	};
 
 	if(!DrawDialog(&dialog)) {
-		int channels = params.def, old = tracker.s->channels;
+		int channels = params.def;
 
-		if(channels == tracker.s->channels) {
+		if(channels == buffer->channels) {
 			DrawDialog(&nothing);
-		} else if(channels > tracker.s->channels) {
+		} else if(channels > buffer->channels) {
 			player_stop();
 
 			// Expand the pattern data, start from the end
 
-			int src = 255 * 64 * old - 1, dest, diff = channels - old;
-
-			for(dest = 255 * 64 * channels - 1 - diff; dest > 0; dest--, src--) {
-				tracker.s->data[dest] = tracker.s->data[src];
-
-				if(src % old == 0) {
-					dest -= diff;
-
-					// Clear the free space
-					memset(tracker.s->data + dest, 0, diff * 2);
+			for(int o = 0; o < 256; o++) {
+				for(int r = 0; r < 64; r++) {
+					unpacked_t *data = &buffer->data[o][r][channels];
+					data->note = 0; data->effect = 0; data->effectval = 0;
 				}
 			}
 
-			raw_mt[0x5D] = channels;
-			MTPlayer_Init(raw_mt);
+			buffer->channels = channels;
+			PTPlayer_Reset(buffer);
 
 			DrawDialog(&ok);
-		} else if(channels < tracker.s->channels) {
+		} else if(channels < buffer->channels) {
 			player_stop();
 
-			// Shrink the pattern data, start from the start
+			buffer->channels = channels;
+			PTPlayer_Reset(buffer);
 
-			int src = 0, dest, diff = old - channels;
-
-			for(dest = 0; dest < 255 * 64 * channels; dest++, src++) {
-				if(dest % channels == 0 && dest != 0)
-					src += diff;
-
-				tracker.s->data[dest] = tracker.s->data[src];
-			}
-
-			raw_mt[0x5D] = channels;
-			MTPlayer_Init(raw_mt);
-
-			if(tracker.channel >= tracker.s->channels) 
-				tracker.channel = tracker.s->channels - 1;
+			if(tracker.channel >= buffer->channels) 
+				tracker.channel = buffer->channels - 1;
 
 			DrawDialog(&ok);
 		}

@@ -20,13 +20,13 @@ void (*submenu_player_fn[])() = {
 void player_resume_pause() {
 	songstatus_t old;
 
-	if(raw_mt != NULL) {
+	if(buffer != NULL) {
 		if(!playing) {
 			memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
 			memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 
 			if(tracker.row != tracker.s->row || tracker.order != tracker.s->order) {
-				MTPlayer_Init(raw_mt);
+				PTPlayer_Reset(buffer);
 
 				memcpy(&old, tracker.s, sizeof(songstatus_t));
 					
@@ -40,7 +40,7 @@ void player_resume_pause() {
 
 					memcpy(&old, tracker.s, sizeof(songstatus_t));
 					
-					MTPlayer_ProcessTick();
+					PTPlayer_ProcessTick();
 
 					if(tracker.s->order * 64 + tracker.s->row != i) {
 						j = 0;
@@ -52,7 +52,7 @@ void player_resume_pause() {
 						// Fallback if the tracker returned to the start
 						// or if it got stuck on a single line
 
-						MTPlayer_Init(raw_mt);
+						PTPlayer_Reset(buffer);
 						
 						tracker.s->order = tracker.order;
 						tracker.s->row = tracker.row - 1;
@@ -74,9 +74,9 @@ void player_resume_pause() {
 }
 
 void player_restart() {
-	if(raw_mt != NULL) {
+	if(buffer != NULL) {
 		playing = 0;
-		MTPlayer_Init(raw_mt);
+		PTPlayer_Reset(buffer);
 		memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
 		memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
 		playing = 1;
@@ -93,9 +93,9 @@ void player_pattern() {
 }
 
 void player_stop() {
-	if(raw_mt != NULL) {
+	if(buffer != NULL) {
 		playing = 0;
-		MTPlayer_Init(raw_mt);
+		PTPlayer_Reset(buffer);
 		UpdateStatus("Stopped.");
 	} else {
 		UpdateStatus("There is nothing to stop.");

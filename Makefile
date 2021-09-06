@@ -3,22 +3,22 @@
 
 objects = main.o sdl.o menu.o input.o diskio.o tracker.o \
 	menu/file.o menu/player.o menu/edit.o menu/track.o menu/help.o \
-	libs/lz4.o libs/tinyfiledialogs.o MTPlayer/mtplayer.o
+	libs/lz4.o libs/tinyfiledialogs.o PTPlayer/ptplayer.o
 
 main.o: sdl.h input.h diskio.h
-sdl.o: sdl.h menu.h diskio.h tracker.h MTPlayer/mtplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
+sdl.o: sdl.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
 menu.o: menu.h sdl.h input.h
 input.o: input.h sdl.h menu.h tracker.h diskio.h
-diskio.o: diskio.h sdl.h tracker.h MTPlayer/mtplayer.h
-tracker.o: tracker.h sdl.h MTPlayer/mtplayer.h diskio.h
+diskio.o: diskio.h sdl.h tracker.h PTPlayer/ptplayer.h
+tracker.o: tracker.h sdl.h PTPlayer/ptplayer.h diskio.h
 menu/file.o: menu/file.h menu/player.h menu.h diskio.h libs/tinyfiledialogs.h
-menu/player.o: menu/player.h menu.h diskio.h tracker.h sdl.h MTPlayer/mtplayer.h
-menu/edit.o: menu/edit.h menu/player.h menu.h diskio.h tracker.h MTPlayer/mtplayer.h
-menu/track.o: menu/track.h menu.h tracker.h diskio.h MTPlayer/mtplayer.h menu/player.h
+menu/player.o: menu/player.h menu.h diskio.h tracker.h sdl.h PTPlayer/ptplayer.h
+menu/edit.o: menu/edit.h menu/player.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h
+menu/track.o: menu/track.h menu.h tracker.h diskio.h PTPlayer/ptplayer.h menu/player.h
 menu/help.o: menu/help.h menu.h
 libs/tinyfiledialogs.o: libs/tinyfiledialogs.h
 libs/lz4.o: libs/lz4.h
-MTPlayer/mtplayer.o: MTPlayer/mtplayer.h
+PTPlayer/ptplayer.o: PTPlayer/ptplayer.h
 
 polytone: CC = gcc
 polytone: $(objects)

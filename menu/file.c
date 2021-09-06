@@ -19,7 +19,8 @@ void (*submenu_file_fn[])() = {
 	file_new, file_open, file_save, file_save_as, NULL, file_quit
 };
 
-const char *extensions[2] = { "*.mon", "*.MON" };
+const char *loadextensions[4] = { "*.mon", "*.MON", "*.pol", "*.POL" };
+const char *saveextensions[2] = { "*.pol", "*.POL" };
 
 void file_new() {
 	static dialog_t sure = {
@@ -29,7 +30,7 @@ void file_new() {
 		NULL, 2, { "Go ahead", "Cancel" }
 	};
 
-	if(raw_mt != NULL) {
+	if(buffer != NULL) {
 		if(DrawDialog(&sure)) return;
 	}
 
@@ -44,25 +45,17 @@ void file_new() {
 	};
 
 	if(!DrawDialog(&dialog)) {
-		if(raw_mt != NULL) {
+		if(buffer != NULL) {
 			player_stop();
-		} else {
-			raw_mt = malloc(MAX_MT_SIZE);
 		}
 
-		memset(raw_mt, 0, MAX_MT_SIZE);
+		uint8_t basicfile[15];
 
-		strcpy(raw_mt, "\x08MONOTONE");
+		memcpy(basicfile, "\x08POLYTONE\x01\x01\x03\x01\x00\xC0", 15);
+		
+		basicfile[0x0B] = params.def;
 
-		raw_mt[0x5B] = 1;	// Version
-//		raw_mt[0x5C] = 1;	// Patterns - doesn't really matter for MTPlayer
-		raw_mt[0x5D] = params.def;	// Channels
-		raw_mt[0x5E] = 2;	// Cell size
-
-		memset(raw_mt + 0x5F, 0xFF, 0x100);
-		raw_mt[0x5F] = 0;
-
-		InitMON("New file");
+		InitPOL("New file", basicfile);
 		lastname = NULL;
 	}
 }
@@ -75,52 +68,52 @@ void file_open() {
 		NULL, 2, { "Go ahead", "Cancel" }
 	};
 
-	if(raw_mt != NULL) {
+	if(buffer != NULL) {
 		if(DrawDialog(&sure)) return;
 	}
 
 	char *filename = tinyfd_openFileDialog(
 		"Load Monotone module",
 		"",
-		2,
-		extensions,
-		"Monotone module",
+		4,
+		loadextensions,
+		NULL,
 		0);
 
 	if(filename) {
 		player_stop();
 
-		LoadMON(filename);
+		LoadPOL(filename);
 	} else {
 		UpdateStatus("No file selected!");
 	}
 }
 
 void file_save() {
-	if(raw_mt == NULL || lastname == NULL) {
+	if(buffer == NULL || lastname == NULL) {
 		file_save_as();
 	} else {
 		player_stop();
 
-		SaveMON(lastname);
+		SavePOL(lastname);
 	}
 }
 
 void file_save_as() {
-	if(raw_mt == NULL) {
+	if(buffer == NULL) {
 		UpdateStatus("There is nothing to save.");
 	} else {
 		char *filename = tinyfd_saveFileDialog(
 			"Save Monotone module",
 			"",
 			2,
-			extensions,
-			"Monotone module");
+			saveextensions,
+			NULL);
 
 		if(filename) {
 			player_stop();
 
-			SaveMON(filename);
+			SavePOL(filename);
 		} else {
 			UpdateStatus("No file selected!");
 		}
@@ -128,7 +121,7 @@ void file_save_as() {
 }
 
 void file_quit() {
-	if(raw_mt == NULL) exit(0);
+	if(buffer == NULL) exit(0);
 
 	static dialog_t sure = {
 		DIALOG_SIMPLE,

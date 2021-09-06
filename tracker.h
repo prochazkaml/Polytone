@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "MTPlayer/mtplayer.h"
+#include "PTPlayer/ptplayer.h"
 
 typedef struct {
 	int row, order, channel, column, octave, update;

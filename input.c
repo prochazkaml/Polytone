@@ -62,7 +62,7 @@ void ParseMainInput() {
 					}
 				}
 
-				if(i == n_shortcuts && raw_mt != NULL)
+				if(i == n_shortcuts && buffer != NULL)
 					ParseKey(event.key.keysym.mod, event.key.keysym.scancode);
 
 				break;

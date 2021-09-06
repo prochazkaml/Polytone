@@ -60,7 +60,7 @@ void MoveCursor(int amount) {
 			tracker.row -= 0x40;
 			tracker.order++;
 
-			if(tracker.order >= tracker.s->orders) tracker.order = 0; 
+			if(tracker.order >= buffer->orders) tracker.order = 0; 
 		}
 	} else if(amount < 0) {
 		if(tracker.selected) {
@@ -69,81 +69,26 @@ void MoveCursor(int amount) {
 			tracker.row += 0x40;
 			tracker.order--;
 
-			if(tracker.order < 0) tracker.order = tracker.s->orders - 1;
+			if(tracker.order < 0) tracker.order = buffer->orders - 1;
 		}
 	}
 }
 
-int GetPtr() {
-	return (tracker.s->ordertable[tracker.order] * 64 + tracker.row) * tracker.s->channels + tracker.channel;
-}
-
-int IsDualslotEffect() {
-	// Checks if the current effect is either 0XY or 4XY.
-
-	return (tracker.s->data[GetPtr()] & 0x00C0) ? 0 : 1;
-}
-
-int GetData(int col) {
-	int ptr = GetPtr();
-
-	uint16_t data = tracker.s->data[ptr];
-
-	switch(col) {
-		case 0:
-			data >>= 9;
-			data &= 0x7F;
-			break;
-
-		case 1:
-			data >>= 6;
-			data &= 0x7;
-			break;
-
-		case 2:
-			if(IsDualslotEffect()) {
-				data >>= 3;
-				data &= 0x7;
-			} else {
-				data >>= 4;
-				data &= 0x3;
-			}
-
-			break;
-
-		case 3:
-			if(IsDualslotEffect()) {
-				data &= 0x7;
-			} else {
-				data &= 0xF;
-			}
-
-			break;
-	}
-
-	return data;
-}
+#define currpat buffer->data[buffer->ordertable[tracker.order]]
+#define currrow currpat[tracker.row]
 
 void PutData(int col, int val) {
-	int ptr = GetPtr();
-
-	uint16_t data = tracker.s->data[ptr];
+	unpacked_t *data = &currrow[tracker.channel];
 
 	switch(col) {
 		case 0:
-			data &= 0x1FF;
-			data |= (val & 0x7F) << 9;
-
-			tracker.s->data[ptr] = data;
+			data->note = val;
 			break;
 
 		case 1:
-			data &= 0xFE3F;
-			data |= (val & 7) << 6;
+			data->effect = val & 0xF;
 
-			tracker.s->data[ptr] = data;
-
-			if((data & 0x3F) == 0 && val == 0) {
+			if(data->effect == 0 && data->effectval == 0) {
 				PutData(2, 4);
 				PutData(3, 7);
 			}
@@ -151,28 +96,35 @@ void PutData(int col, int val) {
 			break;
 
 		case 2:
-		case 3:
-			if(IsDualslotEffect()) {
-				if(col == 2) {
-					data &= 0xFFC7;
-					data |= (val & 7) << 3;
-				} else {
-					data &= 0xFFF8;
-					data |= val & 7;
-				}
-			} else {
-				if(col == 2) {
-					data &= 0xFFCF;
-					data |= (val & 3) << 4;
-				} else {
-					data &= 0xFFF0;
-					data |= val & 0xF;
-				}
-			}
+			data->effectval &= 0x0F;
+			data->effectval |= val << 4;
+			break;
 
-			tracker.s->data[ptr] = data;
+		case 3:
+			data->effectval &= 0xF0;
+			data->effectval |= val & 0xF;
 			break;
 	}
+}
+
+int GetData(int col) {
+	unpacked_t *data = &currrow[tracker.channel];
+
+	switch(col) {
+		case 0:
+			return data->note;
+
+		case 1:
+			return data->effect;
+
+		case 2:
+			return data->effectval >> 4;
+
+		case 3:
+			return data->effectval & 0x0F;
+	}
+
+	return 0;
 }
 
 void StopSelection() {
@@ -267,23 +219,22 @@ int DeleteSelectedBox() {
 }
 
 void MoveDataUp() {
-	int ptr = GetPtr();
-
 	for(int i = tracker.row; i < 0x3F; i++) {
-		tracker.s->data[ptr] = tracker.s->data[ptr + tracker.s->channels];
-		ptr += tracker.s->channels;
+		currpat[i][tracker.channel] =
+			currpat[i + 1][tracker.channel];
 	}
 
-	tracker.s->data[ptr] = 0;
-
+	for(int c = 0; c < buffer->channels; c++) {
+		currpat[0x3F][tracker.channel].note = 0;
+		currpat[0x3F][tracker.channel].effect = 0;
+		currpat[0x3F][tracker.channel].effectval = 0;
+	}
 }
 
 void ParseKey(int mod, int scancode) {
 	for(int i = 0; i < sizeof(ignorekeys); i++) {
 		if(scancode == ignorekeys[i]) return;
 	}
-
-	int ptr = GetPtr();
 
 	printf("%d %d\n", mod, scancode);
 
@@ -305,10 +256,10 @@ void ParseKey(int mod, int scancode) {
 				if(mod & KMOD_CTRL) {
 					StopSelection();
 
-					if(raw_mt[0x5F + tracker.order] > 0)
-						raw_mt[0x5F + tracker.order]--;
+					if(buffer->ordertable[tracker.order] > 0)
+						buffer->ordertable[tracker.order]--;
 
-					MTPlayer_Init(raw_mt);
+					PTPlayer_Reset(buffer);
 				} else {
 					CheckSelection(mod);
 
@@ -316,7 +267,7 @@ void ParseKey(int mod, int scancode) {
 					if(tracker.column < 0) {
 						tracker.column = 3;
 						tracker.channel--;
-						if(tracker.channel < 0) tracker.channel = tracker.s->channels - 1;
+						if(tracker.channel < 0) tracker.channel = buffer->channels - 1;
 					}
 				}
 
@@ -326,10 +277,10 @@ void ParseKey(int mod, int scancode) {
 				if(mod & KMOD_CTRL) {
 					StopSelection();
 
-					if(raw_mt[0x5F + tracker.order] < 0xFF)
-						raw_mt[0x5F + tracker.order]++;
+					if(buffer->ordertable[tracker.order] < 0xFF)
+						buffer->ordertable[tracker.order]++;
 
-					MTPlayer_Init(raw_mt);
+					PTPlayer_Reset(buffer);
 				} else {
 					CheckSelection(mod);
 
@@ -337,7 +288,7 @@ void ParseKey(int mod, int scancode) {
 					if(tracker.column >= 4) {
 						tracker.column = 0;
 						tracker.channel++;
-						if(tracker.channel >= tracker.s->channels) tracker.channel = 0;
+						if(tracker.channel >= buffer->channels) tracker.channel = 0;
 					}
 				}
 
@@ -388,13 +339,14 @@ void ParseKey(int mod, int scancode) {
 
 			case SDL_SCANCODE_INSERT:
 				StopSelection();
-				for(int i = 0x3F; i > tracker.row; i--) {
-					ptr = (tracker.s->ordertable[tracker.order] * 64 + i) * tracker.s->channels + tracker.channel;
 
-					tracker.s->data[ptr] = tracker.s->data[ptr - tracker.s->channels];
+				for(int i = 0x3F; i > tracker.row; i--) {
+					currpat[i][buffer->channels] = currpat[i - 1][buffer->channels];
 				}
 
-				tracker.s->data[GetPtr()] = 0;
+				currrow[buffer->channels].note = 0;
+				currrow[buffer->channels].effect = 0;
+				currrow[buffer->channels].effectval = 0;
 				break;
 
 			case SDL_SCANCODE_DELETE:
@@ -449,7 +401,7 @@ void ParseKey(int mod, int scancode) {
 
 			case 2:
 			case 3:
-				for(int i = 0; i < sizeof(effvalkeys) / (IsDualslotEffect() ? 2 : ((tracker.column - 2) ? 1 : 4)); i++) {
+				for(int i = 0; i < sizeof(effvalkeys); i++) {
 					if(scancode == effvalkeys[i]) {
 						StopSelection();
 						InsertEffectValue(tracker.column - 2, i);
@@ -490,21 +442,20 @@ const char *notes[12] = {
 	"F#", "G-", "G#", "A-", "A#", "B-"
 };
 
-const char effects[8] = "01234BDF";
-const uint32_t effectcolors[8] = {
+const uint32_t effectcolors[16] = {
 	0xFFFFB0B0, 0xFFB0FFFF, 0xFFB0FFFF, 0xFFB0FFFF, 
-	0xFFB0FFFF, 0xFFB0B0FF, 0xFFB0B0FF, 0xFFFFB0B0
+	0xFFB0FFFF, 0xFF0000FF, 0xFF0000FF, 0xFF0000FF, 
+	0xFF0000FF, 0xFF0000FF, 0xFF0000FF, 0xFFB0B0FF,
+	0xFF0000FF, 0xFFB0B0FF, 0xFF0000FF, 0xFFFFB0B0
 };
 
 void DrawRow(int y, int order, int row) {
 	Printf(8, y, WHITE, "%02X", row);
 
-	for(int c = 0; c < tracker.s->channels; c++) {
-		uint16_t data = tracker.s->data[(tracker.s->ordertable[order] * 64 + row) * tracker.s->channels + c];
-
-		int n = data >> 9;
-		int e = (data >> 6) & 7;
-		int v = data & 63;
+	for(int c = 0; c < buffer->channels; c++) {
+		int n = buffer->data[buffer->ordertable[order]][row][c].note;
+		int e = buffer->data[buffer->ordertable[order]][row][c].effect;
+		int v = buffer->data[buffer->ordertable[order]][row][c].effectval;
 
 		if(n == 127) {
 			Printf(36 + c * 64, y, 0xFF8080FF, "OFF");
@@ -522,11 +473,11 @@ void DrawRow(int y, int order, int row) {
 		uint32_t color = effectcolors[e];
 
 		if(e || v) {
-			Printf(68 + c * 64, y, color, "%c", effects[e]);
+			Printf(68 + c * 64, y, color, "%c", "0123456789ABCDEF"[e]);
 
 			if(e == 0 || e == 4) {
-				Printf(76 + c * 64, y, 0xFFC0C0FF, "%X", v >> 3);
-				Printf(84 + c * 64, y, 0xFFC0FFC0, "%X", v & 7);
+				Printf(76 + c * 64, y, 0xFFC0C0FF, "%X", v >> 4);
+				Printf(84 + c * 64, y, 0xFFC0FFC0, "%X", v & 15);
 			} else {
 				Printf(76 + c * 64, y, color, "%02X", v);
 			}
@@ -564,7 +515,7 @@ void RenderTracker() {
 			PIXEL(i, MIDDLEROW_Y) += 0x303030;
 		}
 
-		Printf(8, 23, WHITE, "%02X", tracker.s->ordertable[tracker.order]);
+		Printf(8, 23, WHITE, "%02X", buffer->ordertable[tracker.order]);
 
 		if(playing) {
 			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
@@ -572,7 +523,7 @@ void RenderTracker() {
 
 			tracker.selected = 0;
 
-			for(int c = 0; c < tracker.s->channels; c++) {
+			for(int c = 0; c < buffer->channels; c++) {
 				int color = tracker.s->channel[c].enabled ? WHITE : 0xFF808080;
 				Printf(36 + c * 64, 13, color, "Ch %d", c + 1);
 				Printf(36 + c * 64, 23, color, tracker.s->channel[c].active ? "%d Hz" : "-", tracker.s->channel[c].freq);
@@ -596,7 +547,7 @@ void RenderTracker() {
 				tracker.old_ctr[c] = ctr;
 			}
 		} else {
-			for(int c = 0; c < tracker.s->channels; c++) {
+			for(int c = 0; c < buffer->channels; c++) {
 				Printf(36 + c * 64, 13, WHITE, "Ch %d", c + 1);
 				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
 			}
@@ -636,7 +587,7 @@ void RenderTracker() {
 					if(tracker.order > 0)
 						DrawRow(y, tracker.order - 1, row + 64);
 				} else {
-					if(tracker.order < tracker.s->orders - 1)
+					if(tracker.order < buffer->orders - 1)
 						DrawRow(y, tracker.order + 1, row - 64);
 				}
 
@@ -652,15 +603,15 @@ void RenderTracker() {
 		SDL_FillRect(surface, &orderbar, WHITE);
 
 		Printf(TRACKERWIN_W + 5, 13, WHITE, "Order");
-		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, tracker.s->orders);
+		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, buffer->orders);
 		Printf(TRACKERWIN_W + 5, 33, WHITE, "Oct:%d", tracker.octave);
 
 		int order = tracker.order - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
 
 		for(int y = TRACKERWIN_Y; y < S_HEIGHT - 8; y += 8) {
-			if(order >= 0 && order < tracker.s->orders) {
+			if(order >= 0 && order < buffer->orders) {
 				Printf(TRACKERWIN_W + 5, y, (order == tracker.order) ? WHITE : 0xFF808080,
-					"%02X:%02X", order, tracker.s->ordertable[order]);
+					"%02X:%02X", order, buffer->ordertable[order]);
 			}
 
 			order++;

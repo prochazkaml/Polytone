@@ -1,11 +1,9 @@
 #include <stdint.h>
+#include "PTPlayer/ptplayer.h"
 
-#define MAX_MT_SIZE (0x15F + 255 * 12 * 64 * 2)
-// In case anyone is wondering, MAX_MT_SIZE is 392031 bytes
-
-extern uint8_t *raw_mt;
+extern buffer_t *buffer;
 extern char *lastname;
 
-int InitMON(char *filename);
-int LoadMON(char *filename);
-int SaveMON(char *filename);
+int InitPOL(char *filename, uint8_t *data);
+int LoadPOL(char *filename);
+int SavePOL(char *filename);
