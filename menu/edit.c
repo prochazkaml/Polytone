@@ -44,8 +44,10 @@ void edit_copy() {
 		return;
 	}
 
-	CheckSelection(KMOD_SHIFT);
-	UpdateSelectedBox();
+	if(!tracker.selected) {
+		CheckSelection(KMOD_SHIFT);
+		UpdateSelectedBox();
+	}
 
 	char str[16384] = "POLYTONE_CLIPBOARD\n";	// 16k should be enough, right?
 
