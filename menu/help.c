@@ -33,15 +33,15 @@ void help_effects() {
 		DIALOG_SIMPLE,
 
 		"Effect reference\n \n"
-		"0XY = arpeggio (X,Y = 0-7 semitones)        \n"
-		"1XX = slide up (XX = 0-63 Hz/tick)          \n"
-		"2XX = slide down (XX = 0-63 Hz/tick)        \n"
-		"3XX = slide to note (XX = 1-63 Hz/tick)     \n"
-		"4XY = vibrato (X = speed 1-7, Y = depth 1-7)\n"
-		"BXX = order jump (XX = order id 0-63)       \n"
-		"DXX = jump to next pattern (XX = row 0-63)  \n"
-		"FXX = set speed (XX = set speed 0-32)       \n"
-		"                (XX = set 33-63 tick Hz)    \n \n"
+		"0XY = arpeggio (X,Y = 0-15 semitones)         \n"
+		"1XX = slide up (XX = 0-255 Hz/tick)           \n"
+		"2XX = slide down (XX = 0-255 Hz/tick)         \n"
+		"3XX = slide to note (XX = 1-255 Hz/tick)      \n"
+		"4XY = vibrato (X = speed 1-15, Y = depth 1-15)\n"
+		"BXX = order jump (XX = order number 0-255)    \n"
+		"DXX = jump to next pattern (XX = row 0-255)   \n"
+		"FXX = set speed (XX = set speed 0-32)         \n"
+		"                (XX = set 33-255 tick Hz)     \n \n"
 
 		"If a parameter begins from 1 (3XX, 4XY),\n"
 		"then 0 = repeat the last known value.",
