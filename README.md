@@ -1,11 +1,20 @@
 # Polytone
-A modern re-implementation of the MONOTONE tracker.
+A modern re-implementation of the MONOTONE tracker with many enhancements.
 
 ![Polytone screenshot](assets/scrot.png)
 
 Thanks to SDL2, it runs on all major platforms (Linux, macOS and Windows).
 It uses its own file format (.POL) for expanded effect values & pattern packing,
 but it still has the ability to import your old Monotone files.
+
+New features include:
+- Full-range effects (8-bit values instead of only 6-bit)!
+- Pattern packing (so the file sizes are _usually_ smaller)
+- Mouse support for navigating menus
+- Cut/Copy/Paste (works system-wide, so you can easily copy parts of one song to another)
+- Built-in fully documented effects reference (todo: a full manual)
+- Colorful tracker window
+- etc.
 
 Please visit the [PTPlayer repo](https://github.com/prochazkaml/PTPlayer) for more information about MONOTONE and the Polytone file format.
 
