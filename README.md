@@ -28,7 +28,7 @@ cd Polytone
 make
 ```
 
-It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.sh/) and the Apple Developer Tools first.
+It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.sh/) first.
 
 ## Cross-building for Windows (from Linux)
 
