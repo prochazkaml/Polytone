@@ -29,11 +29,6 @@ const uint8_t notekeys[] = {
 	SDL_SCANCODE_RIGHTBRACKET
 };
 
-const uint8_t effkeys[] = {
-	SDL_SCANCODE_0, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
-	SDL_SCANCODE_4, SDL_SCANCODE_B, SDL_SCANCODE_D, SDL_SCANCODE_F
-};
-
 const uint8_t effvalkeys[] = {
 	SDL_SCANCODE_0, SDL_SCANCODE_1, SDL_SCANCODE_2, SDL_SCANCODE_3,
 	SDL_SCANCODE_4, SDL_SCANCODE_5, SDL_SCANCODE_6,	SDL_SCANCODE_7,
@@ -390,8 +385,8 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case 1:
-				for(int i = 0; i < sizeof(effkeys); i++) {
-					if(scancode == effkeys[i]) {
+				for(int i = 0; i < sizeof(effvalkeys); i++) {
+					if(scancode == effvalkeys[i]) {
 						StopSelection();
 						InsertEffect(i);
 						tracker.column++;
