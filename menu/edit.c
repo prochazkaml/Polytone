@@ -2,6 +2,7 @@
 #include "player.h"
 #include "../diskio.h"
 #include "../tracker.h"
+#include <stdio.h>
 
 menu_t submenu_edit = {
 	C(13), C(1), C(19), C(6), 6,

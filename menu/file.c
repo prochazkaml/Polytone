@@ -2,6 +2,7 @@
 #include "player.h"
 #include "../diskio.h"
 #include "../libs/tinyfiledialogs.h"
+#include <string.h>
 
 menu_t submenu_file = {
 	C(1), C(1), C(16), C(6), 6,

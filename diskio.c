@@ -4,6 +4,10 @@
 #include "diskio.h"
 #include "tracker.h"
 #include "libs/lz4.h"
+#include "libs/tinyfiledialogs.h"
+
+#ifdef _WIN32
+#endif
 
 buffer_t *buffer = NULL;
 char *lastname = NULL;
@@ -51,9 +55,11 @@ int LoadPOL(char *filename) {
 	 * 2: File contents invalid
 	 */
 
-
-
+#ifdef _WIN32
+	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"rb");
+#else
 	FILE *pt = fopen(filename, "rb");
+#endif
 
 	if(pt == NULL) {
 		UpdateStatus("Could not open %s!", basename(filename));
@@ -90,9 +96,13 @@ int SavePOL(char *filename) {
 	 * 1: Could not save file
 	 */
 
-	FILE *mt = fopen(filename, "wb");
+#ifdef _WIN32
+	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"wb");
+#else
+	FILE *pt = fopen(filename, "wb");
+#endif
 
-	if(mt == NULL) {
+	if(pt == NULL) {
 		UpdateStatus("Could not save %s!", basename(filename));
 		return 1;
 	}
@@ -192,8 +202,8 @@ int SavePOL(char *filename) {
 		}
 	}
 
-	fwrite(data, 1, out - data, mt);
-	fclose(mt);
+	fwrite(data, 1, out - data, pt);
+	fclose(pt);
 	free(data);
 
 	lastname = filename;

@@ -9,7 +9,7 @@ main.o: sdl.h input.h diskio.h
 sdl.o: sdl.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
 menu.o: menu.h sdl.h input.h
 input.o: input.h sdl.h menu.h tracker.h diskio.h
-diskio.o: diskio.h sdl.h tracker.h PTPlayer/ptplayer.h
+diskio.o: diskio.h sdl.h tracker.h libs/tinyfiledialogs.h PTPlayer/ptplayer.h
 tracker.o: tracker.h sdl.h PTPlayer/ptplayer.h diskio.h
 menu/file.o: menu/file.h menu/player.h menu.h diskio.h libs/tinyfiledialogs.h
 menu/player.o: menu/player.h menu.h diskio.h tracker.h sdl.h PTPlayer/ptplayer.h

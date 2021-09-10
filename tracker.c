@@ -1,6 +1,7 @@
 #include "tracker.h"
 #include "sdl.h"
 #include "diskio.h"
+#include <stdio.h>
 
 tracker_t tracker;
 
