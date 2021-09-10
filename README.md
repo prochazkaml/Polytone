@@ -18,6 +18,74 @@ New features include:
 
 Please visit the [PTPlayer repo](https://github.com/prochazkaml/PTPlayer) for more information about MONOTONE and the Polytone file format.
 
+## Basic controls
+
+Keep in mind that Polytone uses raw scancodes for each key, so it doesn't matter which keyboard layout you have.
+
+Moving the cursor:
+
+```
+↑/↓/←/→ = Move the cursor by 1 row/column
+Ctrl+↑/↓ = Move the cursor by 16 rows
+PgUp/PgDn = Move the cursor by 64 rows
+Home/End = Go to the start/end of the pattern
+```
+
+Entering notes for the lower octave:
+
+```
+ A S   F G H   →    C#3 D#3     F#3 G#3 A#3
+Z X C V B N M  →  C3  D3  E3  F3  G3  A3  B3
+```
+
+Entering notes for the higher octave(s):
+
+```
+ 2 3   5 6 7   9 0   =   →    C#4 D#4     F#4 G#4 A#4     C#5 D#5     F#5
+Q W E R T Y U I O P [ ]  →  C4  D4  E4  F4  G4  A4  B4  C5  D5  E5  F5  G5
+```
+
+The current octave can be changed by `F9` & `F10`.
+
+Other data manipulation:
+```
+Space = Insert "OFF" note (stops the playback of the current note)
+Backspace = Delete the currently selected note/effect and move the cursor 1 row down
+Delete = Delete the currently selected note/effect and move the rest of the data till the end of the pattern up
+Insert = Insert a black space and move the rest of the data till the end of the pattern down
+```
+
+Order table manipulation:
+
+```
+Ctrl+←/→ = Change the pattern for the current order entry
+F11 = Remove the current order entry
+F12 = Add a new order entry
+```
+
+Selection/Clipboard:
+
+```
+Shift+(one of the movement keys) = Start a selection
+Ctrl+A = Select the entire pattern
+Backspace = Clear the data in the current selection
+Delete = Delete the data in the current selection and move the rest of the data till the end of the pattern up
+Ctrl+X = Cut the current selection
+Ctrl+C = Copy the current selection
+Ctrl+V = Paste the current selection
+```
+
+Playback:
+
+```
+F5 = Play from the current position
+F6 = Play from the start of the song
+F7 = Play from the start of the current pattern
+F8 = Stop
+```
+
+Effects (hexadecimal values: 0-9, A-F) are typed as they normally would be on a US keyboard.
+
 ## Building for Linux/macOS
 
 ``` bash
