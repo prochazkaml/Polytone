@@ -68,8 +68,8 @@ Selection/Clipboard:
 ```
 Shift+(one of the movement keys) = Start a selection
 Ctrl+A = Select the entire pattern
-Backspace = Clear the data in the current selection
-Delete = Delete the data in the current selection and move the rest of the data till the end of the pattern up
+(when selected) Backspace = Clear the data in the current selection
+(when selected) Delete = Delete the data in the current selection and move the rest of the data till the end of the pattern up
 Ctrl+X = Cut the current selection
 Ctrl+C = Copy the current selection
 Ctrl+V = Paste the current selection
