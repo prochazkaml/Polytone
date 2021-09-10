@@ -56,8 +56,7 @@ void file_new() {
 		
 		basicfile[0x0B] = params.def;
 
-		InitPOL("New file", basicfile);
-		lastname = NULL;
+		InitPOL(lastname = NULL, basicfile);
 	}
 }
 

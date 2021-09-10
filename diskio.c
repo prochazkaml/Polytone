@@ -29,7 +29,7 @@ int InitPOL(char *filename, uint8_t *data) {
 	}
 
 	if(PTPlayer_UnpackFile(data, buffer)) {
-		UpdateStatus("%s is invalid!", basename(filename));
+		UpdateStatus("%s is invalid!", filename ? basename(filename) : "New file");
 		Reset();
 		return 2;
 	}
@@ -43,7 +43,7 @@ int InitPOL(char *filename, uint8_t *data) {
 	tracker.selected = 0;
 	tracker.s = PTPlayer_GetStatus();
 
-	UpdateStatus("%s loaded!", basename(filename));
+	UpdateStatus("%s loaded!", filename ? basename(filename) : "New file");
 	return 0;
 }
 
