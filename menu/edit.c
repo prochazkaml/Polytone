@@ -105,7 +105,7 @@ void edit_paste() {
 		col0 = strtol(data, &data, 10),
 		col1 = strtol(data, &data, 10);
 
-	if(memcmp(str, "POLYTONE_CLIPBOARD\n", 19)) {
+	if(memcmp(str, "POLYTONE_CLIPBOARD", 18)) {
 		UpdateStatus("The clipboard contains invalid data.");
 		return;
 	}
