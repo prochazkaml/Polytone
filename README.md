@@ -100,24 +100,18 @@ It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.s
 
 ## Cross-building for Windows (from Linux)
 
-Firstly, it is necessary to install the prerequisites:
-
 ``` bash
 sudo apt-get install build-essential git gcc-mingw-w64-x86-64 # For Debian/Ubuntu
 git clone --recurse-submodules https://github.com/prochazkaml/Polytone
 cd Polytone
-```
 
-Then you'll need to download the [SDL2 development library for MinGW](https://www.libsdl.org/download-2.0.php).
-Extract it and navigate to the folder from where you can see the following:
+# One-time setup
+wget https://www.libsdl.org/release/SDL2-devel-2.0.16-mingw.tar.gz -O SDL.tar.gz
+tar -xf SDL.tar.gz
+sudo rsync -a SDL2-2.0.16/x86_64-w64-mingw32/ /usr/x86_64-w64-mingw32
+cp SDL2-2.0.16/x86_64-w64-mingw32/bin/SDL2.dll .
+rm -rf SDL*
 
-(todo: add an image)
-
-Make sure you are in the 64-bit directory (`x86_64-w64-mingw32`, not `i686-w64-mingw32`).
-Copy the contents of the `include` and `lib` folders into the respective folders in `/usr/x86_64-w64-mingw32`.
-Finally, copy `SDL2.dll` from the `bin` folder into the root of this repository.
-Then you can start the build:
-
-``` bash
+# Start thh build
 make polytone.exe
 ```
