@@ -120,6 +120,8 @@ make polytone.exe
 
 - Add undo/redo
 - Add function for playing a single line (could be done as an extension of PTPlayer_PlayNote)
+- Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
+- Write the manual
 - bugfix: program crashes when F6 (possibly other keys?) is held down too long (only works sometimes)
 - bugfix: Insert key on Windows is broken (?)
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
