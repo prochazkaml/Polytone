@@ -115,3 +115,11 @@ rm -rf SDL*
 # Start thh build
 make polytone.exe
 ```
+
+## To-do list
+
+- Add undo/redo
+- Add function for playing a single line (could be done as an extension of PTPlayer_PlayNote)
+- bugfix: program crashes when F6 (possibly other keys?) is held down too long (only works sometimes)
+- bugfix: Insert key on Windows is broken (?)
+- bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
