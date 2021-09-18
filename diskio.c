@@ -55,6 +55,14 @@ int LoadPOL(char *filename) {
 	 * 2: File contents invalid
 	 */
 
+	printf("Input filename: \"%s\" -", filename);
+
+	for(int i = 0; i < strlen(filename); i++) {
+		printf(" %02X", filename[i]);
+	}
+
+	putchar('\n');
+
 #ifdef _WIN32
 	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"rb");
 #else
@@ -95,6 +103,14 @@ int SavePOL(char *filename) {
 	 * 0: OK
 	 * 1: Could not save file
 	 */
+
+	printf("Output filename: \"%s\" -", filename);
+
+	for(int i = 0; i < strlen(filename); i++) {
+		printf(" %02X", filename[i]);
+	}
+
+	putchar('\n');
 
 #ifdef _WIN32
 	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"wb");
