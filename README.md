@@ -100,24 +100,33 @@ It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.s
 
 ## Cross-building for Windows (from Linux)
 
-Firstly, it is necessary to install the prerequisites:
-
 ``` bash
 sudo apt-get install build-essential git gcc-mingw-w64-x86-64 # For Debian/Ubuntu
 git clone --recurse-submodules https://github.com/prochazkaml/Polytone
 cd Polytone
-```
 
-Then you'll need to download the [SDL2 development library for MinGW](https://www.libsdl.org/download-2.0.php).
-Extract it and navigate to the folder from where you can see the following:
+# One-time setup
+wget https://www.libsdl.org/release/SDL2-devel-2.0.16-mingw.tar.gz -O SDL.tar.gz
+tar -xf SDL.tar.gz
+sudo rsync -a SDL2-2.0.16/x86_64-w64-mingw32/ /usr/x86_64-w64-mingw32
+cp SDL2-2.0.16/x86_64-w64-mingw32/bin/SDL2.dll .
+rm -rf SDL*
 
-(todo: add an image)
-
-Make sure you are in the 64-bit directory (`x86_64-w64-mingw32`, not `i686-w64-mingw32`).
-Copy the contents of the `include` and `lib` folders into the respective folders in `/usr/x86_64-w64-mingw32`.
-Finally, copy `SDL2.dll` from the `bin` folder into the root of this repository.
-Then you can start the build:
-
-``` bash
+# Start thh build
 make polytone.exe
 ```
+
+## To-do list
+
+- Add undo/redo
+- Add function for playing a single line (could be done as an extension of PTPlayer_PlayNote)
+- Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
+- Write the manual
+- bugfix: program crashes when F6 (possibly other keys?) is held down too long (only works sometimes)
+- bugfix: Insert key on Windows is broken (?)
+- bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
+- bugfix: If the number of channels is increased and a song was loaded earlier, old corrupted data will appear
+- bugfix: If the cursor is _after_ a BXX/DXX effect & F5 is pressed, then the tracker still performs the jump
+- Implement exporting to WAV
+- Implement exporting to MIDI
+- Implement exporting to a basic CSV frequency list
