@@ -126,7 +126,6 @@ make polytone.exe
 - bugfix: Insert key on Windows is broken (?)
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
 - bugfix: If the number of channels is increased and a song was loaded earlier, old corrupted data will appear
-- bugfix: If the cursor is _after_ a BXX/DXX effect & F5 is pressed, then the tracker still performs the jump
 - Implement exporting to WAV
 - Implement exporting to MIDI
 - Implement exporting to a basic CSV frequency list

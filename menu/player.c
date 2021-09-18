@@ -33,7 +33,7 @@ void player_resume_pause() {
 				int i, j;
 
 				while(1) {
-					if((i = tracker.s->order * 64 + tracker.s->row) >= (tracker.order * 64 + tracker.row)) {
+					if((i = tracker.s->order * 64 + tracker.s->row) == (tracker.order * 64 + tracker.row)) {
 						memcpy(tracker.s, &old, sizeof(songstatus_t));
 						break;
 					}
