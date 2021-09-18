@@ -28,5 +28,9 @@ polytone.exe: CC = x86_64-w64-mingw32-gcc
 polytone.exe: $(objects)
 	$(CC) $(objects) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -Wl,-subsystem,windows -o $@
 
+polytonedbg.exe: CC = x86_64-w64-mingw32-gcc
+polytonedbg.exe: $(objects)
+	$(CC) $(objects) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -o $@
+
 clean:
 	rm -f polytone polytone.exe $(objects)
