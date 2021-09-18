@@ -125,7 +125,6 @@ make polytone.exe
 - bugfix: program crashes when F6 (possibly other keys?) is held down too long (only works sometimes)
 - bugfix: Insert key on Windows is broken (?)
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
-- bugfix: If the number of channels is increased and a song was loaded earlier, old corrupted data will appear
 - Implement exporting to WAV
 - Implement exporting to MIDI
 - Implement exporting to a basic CSV frequency list
