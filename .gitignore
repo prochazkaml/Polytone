@@ -1,6 +1,6 @@
 *.o
 polytone
-polytone.exe
+*.exe
 *.dll
 .vscode
 examples

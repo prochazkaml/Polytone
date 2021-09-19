@@ -33,4 +33,4 @@ polytonedbg.exe: $(objects)
 	$(CC) $(objects) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -o $@
 
 clean:
-	rm -f polytone polytone.exe $(objects)
+	rm -f polytone *.exe $(objects)
