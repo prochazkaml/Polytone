@@ -311,9 +311,23 @@ void ParseKey(int mod, int scancode) {
 				break;
 
 			case SDL_SCANCODE_SPACE:
+				if(!(mod & KMOD_CTRL)) {
+					StopSelection();
+					InsertNote(0x7F);
+					MoveCursor(1);
+					break;
+				}
+
+			case SDL_SCANCODE_INSERT:
 				StopSelection();
-				InsertNote(0x7F);
-				MoveCursor(1);
+
+				for(int i = 0x3F; i > tracker.row; i--) {
+					currpat[i][tracker.channel] = currpat[i - 1][tracker.channel];
+				}
+
+				currrow[tracker.channel].note = 0;
+				currrow[tracker.channel].effect = 0;
+				currrow[tracker.channel].effectval = 0;
 				break;
 
 			case SDL_SCANCODE_BACKSPACE:
@@ -331,18 +345,6 @@ void ParseKey(int mod, int scancode) {
 					MoveCursor(1);
 				}
 
-				break;
-
-			case SDL_SCANCODE_INSERT:
-				StopSelection();
-
-				for(int i = 0x3F; i > tracker.row; i--) {
-					currpat[i][tracker.channel] = currpat[i - 1][tracker.channel];
-				}
-
-				currrow[tracker.channel].note = 0;
-				currrow[tracker.channel].effect = 0;
-				currrow[tracker.channel].effectval = 0;
 				break;
 
 			case SDL_SCANCODE_DELETE:

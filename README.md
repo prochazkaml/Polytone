@@ -49,10 +49,10 @@ The current octave can be changed by `F9` & `F10`.
 
 Other data manipulation:
 ```
-Space = Insert "OFF" note (stops the playback of the current note)
+Space = Enter "OFF" note (stops the playback of the current note)
 Backspace = Delete the currently selected note/effect and move the cursor 1 row down
 Delete = Delete the currently selected note/effect and move the rest of the data till the end of the pattern up
-Insert = Insert a black space and move the rest of the data till the end of the pattern down
+Insert or Ctrl+Space = Insert a black space and move the rest of the data till the end of the pattern down
 ```
 
 Order table manipulation:
@@ -83,6 +83,8 @@ F6 = Play from the start of the song
 F7 = Play from the start of the current pattern
 F8 = Stop
 ```
+
+During playback, you may also press the `1-0, -, =` keys to mute certain channels.
 
 Effects (hexadecimal values: 0-9, A-F) are typed as they normally would be on a US keyboard.
 
@@ -123,7 +125,6 @@ make polytone.exe
 - Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
 - Write the manual
 - bugfix: program crashes when F6 (possibly other keys?) is held down too long (only works sometimes)
-- bugfix: Insert key on Windows is broken (?)
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
 - Implement exporting to WAV
 - Implement exporting to MIDI
