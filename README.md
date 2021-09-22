@@ -91,11 +91,16 @@ Effects (hexadecimal values: 0-9, A-F) are typed as they normally would be on a 
 ## Building for Linux/macOS
 
 ``` bash
-sudo apt-get install build-essential git libsdl2-dev # For Debian/Ubuntu
-brew install sdl2                                    # For macOS
+# For Debian/Ubuntu:
+sudo apt-get install build-essential git zenity libsdl2-dev
+
+# For macOS:
+brew install sdl2
+
 git clone --recurse-submodules https://github.com/prochazkaml/Polytone
 cd Polytone
 make
+./polytone
 ```
 
 It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.sh/) first.
