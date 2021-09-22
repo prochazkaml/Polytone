@@ -76,10 +76,10 @@ void player_resume_pause() {
 void player_restart() {
 	if(buffer != NULL) {
 		playing = 0;
-		PTPlayer_Reset(buffer);
-		memset(tracker.old_ctr, 0, sizeof(tracker.old_ctr));
-		memset(tracker.ch_ctr, 27, sizeof(tracker.ch_ctr));
-		playing = 1;
+		tracker.row = 0;
+		tracker.order = 0;
+
+		player_resume_pause();
 	} else {
 		UpdateStatus("There is nothing to restart.");
 	}
