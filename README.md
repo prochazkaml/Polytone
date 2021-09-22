@@ -121,6 +121,9 @@ rm -rf SDL*
 
 # Start thh build
 make polytone.exe
+
+# To generate a GitHub release, run:
+make pkg_windows
 ```
 
 ## To-do list
