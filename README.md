@@ -119,7 +119,7 @@ sudo rsync -a SDL2-2.0.16/x86_64-w64-mingw32/ /usr/x86_64-w64-mingw32
 cp SDL2-2.0.16/x86_64-w64-mingw32/bin/SDL2.dll .
 rm -rf SDL*
 
-# Start thh build
+# Start the build
 make polytone.exe
 
 # To generate a GitHub release, run:
@@ -133,6 +133,8 @@ make pkg_windows
 - Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
 - Write the manual
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
+- Adjustable window size
+- Stereo audio output?
 - Implement exporting to WAV
 - Implement exporting to MIDI
 - Implement exporting to a basic CSV frequency list
