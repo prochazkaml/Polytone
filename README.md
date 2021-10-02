@@ -78,6 +78,7 @@ Ctrl+V = Paste the current selection
 Playback:
 
 ```
+F4 = Preview the current line
 F5 = Play from the current position
 F6 = Play from the start of the song
 F7 = Play from the start of the current pattern
