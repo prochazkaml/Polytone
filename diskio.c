@@ -6,9 +6,6 @@
 #include "libs/lz4.h"
 #include "libs/tinyfiledialogs.h"
 
-#ifdef _WIN32
-#endif
-
 buffer_t *buffer = NULL;
 char *lastname = NULL;
 
@@ -63,11 +60,7 @@ int LoadPOL(char *filename) {
 
 	putchar('\n');
 
-#ifdef _WIN32
-	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"rb");
-#else
-	FILE *pt = fopen(filename, "rb");
-#endif
+	FILE *pt = diskio_fopen(filename, "rb");
 
 	if(pt == NULL) {
 		UpdateStatus("Could not open %s!", basename(filename));
@@ -112,11 +105,7 @@ int SavePOL(char *filename) {
 
 	putchar('\n');
 
-#ifdef _WIN32
-	FILE *pt = _wfopen(tinyfd_utf8to16(filename), L"wb");
-#else
-	FILE *pt = fopen(filename, "wb");
-#endif
+	FILE *pt = diskio_fopen(filename, "wb");
 
 	if(pt == NULL) {
 		UpdateStatus("Could not save %s!", basename(filename));
