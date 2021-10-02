@@ -5,8 +5,6 @@ objects = main.o sdl.o menu.o input.o diskio.o tracker.o \
 	menu/file.o menu/player.o menu/edit.o menu/track.o menu/help.o \
 	libs/lz4.o libs/tinyfiledialogs.o PTPlayer/ptplayer.o
 
-songs = example.pol tdu.pol
-
 main.o: sdl.h input.h diskio.h
 sdl.o: sdl.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
 menu.o: menu.h sdl.h input.h
@@ -38,4 +36,4 @@ clean:
 	rm -f polytone *.exe *zip $(objects)
 
 pkg_windows: polytone.exe
-	zip polytone.zip polytone.exe SDL2.dll $(songs)
+	zip polytone.zip -r polytone.exe SDL2.dll examples
