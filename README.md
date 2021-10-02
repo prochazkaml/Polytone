@@ -129,12 +129,12 @@ make pkg_windows
 ## To-do list
 
 - Add undo/redo
-- Add function for playing a single line (could be done as an extension of PTPlayer_PlayNote)
 - Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
 - Write the manual
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
 - Adjustable window size
 - Stereo audio output?
+- Instrument support
 - Implement exporting to WAV
 - Implement exporting to MIDI
 - Implement exporting to a basic CSV frequency list
