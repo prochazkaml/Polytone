@@ -22,6 +22,7 @@ kbdshortcut_t shortcuts[] = {
 	{ KMOD_LCTRL, SDL_SCANCODE_S, file_save },
 	{ KMOD_LCTRL, SDL_SCANCODE_Q, file_quit },
 
+	{ 0, SDL_SCANCODE_F4, player_play_line },
 	{ 0, SDL_SCANCODE_F5, player_resume_pause },
 	{ 0, SDL_SCANCODE_F6, player_restart },
 	{ 0, SDL_SCANCODE_F7, player_pattern },
