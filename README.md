@@ -136,5 +136,4 @@ make pkg_windows
 - Adjustable window size
 - Stereo audio output?
 - Instrument support
-- Implement exporting to WAV
 - Implement exporting to MIDI
