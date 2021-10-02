@@ -8,6 +8,9 @@
 #define diskio_fopen(file, mode) fopen(file, mode)
 #endif
 
+#define fput16(i, f) fputc((i) & 0xFF, f); fputc(((i) & 0xFF00) >> 8, f)
+#define fput32(i, f) fput16((i), f); fput16((i) >> 16, f)
+
 extern buffer_t *buffer;
 extern char *lastname;
 
