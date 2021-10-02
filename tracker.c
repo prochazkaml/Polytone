@@ -516,9 +516,11 @@ void RenderTracker() {
 		Printf(8, 23, WHITE, "%02X", buffer->ordertable[tracker.order]);
 
 		if(playing) {
-			UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
-				samples / 100, samples % 100, tracker.s->tempo, tracker.s->audiospeed);
-
+			if(!stopdelay) {
+				UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
+					samples / 100, samples % 100, tracker.s->tempo, tracker.s->audiospeed);
+			}
+			
 			tracker.selected = 0;
 
 			for(int c = 0; c < buffer->channels; c++) {

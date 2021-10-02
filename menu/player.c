@@ -65,6 +65,8 @@ void player_play_line() {
 		if(!playing) {
 			_play_from_line();
 
+			stopdelay = 15;
+
 			tracker.s->allowadvance = -1;
 			playing = 1;
 		}

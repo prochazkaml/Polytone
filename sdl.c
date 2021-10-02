@@ -12,7 +12,7 @@ SDL_Window *window;
 SDL_Surface *surface, *subsurface;
 SDL_Renderer *renderer;
 uint32_t *screen;
-int samples, playing = 0, immnote, immnotedelay = 0;
+int samples, playing = 0, immnote, immnotedelay = 0, stopdelay = 0;
 
 int VIDEO_SCALE = 2;
 
@@ -32,6 +32,10 @@ void audio_callback(void *data, uint8_t *stream, int len) {
 		tracker.row = tracker.s->row;
 		tracker.order = tracker.s->order;
 		tracker.update = 1;
+	}
+
+	if(stopdelay > 0 && !--stopdelay) {
+		playing = 0;
 	}
 
 	if(immnotedelay) {

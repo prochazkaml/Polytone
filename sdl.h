@@ -14,7 +14,7 @@
 
 extern SDL_Surface *surface, *subsurface;
 extern uint32_t *screen;
-extern int samples, playing, immnote, immnotedelay;
+extern int samples, playing, immnote, immnotedelay, stopdelay;
 
 #define PIXEL(x, y) screen[(x) + (y) * S_WIDTH]
 
