@@ -146,12 +146,54 @@ void _export_csv(FILE *file) {
 
 }
 
-const char *exportextensions[1][2] = {
-	{ "*.csv", "*.CSV" }
+void _export_wav(FILE *file) {
+	int old;
+	int16_t buf;
+
+	int samples = 0;
+
+	// Write the data first
+
+	fseek(file, 44, SEEK_SET);
+
+	while(1) {
+		old = tracker.s->order * 64 + tracker.s->row;
+
+		PTPlayer_PlayInt16(&buf, 1, 44100);
+
+		if((tracker.s->order * 64 + tracker.s->row) < old) break;
+
+		fputc(buf & 0xFF, file);
+		fputc(buf >> 8, file);
+
+		samples++;
+	}
+
+	// Generate a valid header
+
+	fseek(file, 0, SEEK_SET);
+
+	fputs("RIFF", file);
+	fput32(36 + samples * 2, file);
+	fputs("WAVEfmt ", file);
+	fput32(16, file);
+	fput16(1, file);
+	fput16(1, file);
+	fput32(44100, file);
+	fput32(44100 * 2, file);
+	fput16(2, file);
+	fput16(16, file);
+	fputs("data", file);
+	fput32(samples * 2, file);
+}
+
+const char *exportextensions[][2] = {
+	{ "*.csv", "*.CSV" },
+	{ "*.wav", "*.WAV" }
 };
 
 void (*_export_fn[])(FILE *) = {
-	_export_csv
+	_export_csv, _export_wav
 };
 
 void file_export() {
@@ -161,12 +203,12 @@ void file_export() {
 		static dialog_t format = {
 			DIALOG_SIMPLE,
 			"What format do you want to export as?",
-			NULL, 2, { "CSV", "Cancel" }
+			NULL, 3, { "CSV", "WAV", "Cancel" }
 		};
 
 		int response = DrawDialog(&format);
 
-		if(response < 1) {
+		if(response < (format.buttons - 1)) {
 			char *filename = tinyfd_saveFileDialog(
 				"Export file",
 				"",
