@@ -17,7 +17,7 @@ void help_about() {
 	static dialog_t dialog = {
 		DIALOG_SIMPLE,
 
-		"Polytone v0.1\n \n"
+		"Polytone v0.1.1\n \n"
 		"Created by Michal Prochazka, 2021\n \n"
 		"Inspired by Trixter / Hornet's Monotone\n \n"
 		"https://polytone.prochazka.ml/",
