@@ -138,4 +138,3 @@ make pkg_windows
 - Instrument support
 - Implement exporting to WAV
 - Implement exporting to MIDI
-- Implement exporting to a basic CSV frequency list

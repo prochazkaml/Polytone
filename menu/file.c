@@ -1,8 +1,10 @@
 #include "file.h"
 #include "player.h"
+#include "../tracker.h"
 #include "../diskio.h"
 #include "../libs/tinyfiledialogs.h"
 #include <string.h>
+#include <libgen.h>
 
 menu_t submenu_file = {
 	C(1), C(1), C(16), C(6), 6,
@@ -17,7 +19,7 @@ menu_t submenu_file = {
 }};
 
 void (*submenu_file_fn[])() = {
-	file_new, file_open, file_save, file_save_as, NULL, file_quit
+	file_new, file_open, file_save, file_save_as, file_export, file_quit
 };
 
 const char *loadextensions[4] = { "*.mon", "*.MON", "*.pol", "*.POL" };
@@ -118,6 +120,76 @@ void file_save_as() {
 			SavePOL(filename);
 		} else {
 			UpdateStatus("No file selected!");
+		}
+	}
+}
+
+void _export_csv(FILE *file) {
+	int old;
+
+	while(1) {
+		old = tracker.s->order * 64 + tracker.s->row;
+
+		PTPlayer_ProcessTick();
+
+		if((tracker.s->order * 64 + tracker.s->row) < old) break;
+
+		fprintf(file, "%d,%d,%d", tracker.s->order, tracker.s->row, tracker.s->tempo - tracker.s->tempotick);
+
+		for(int c = 0; c < tracker.s->buf->channels; c++) {
+			int f = tracker.s->channel[c].freq;
+			fprintf(file, ",%d", tracker.s->channel[c].active ? f : 0);
+		}
+
+		fprintf(file, "\n");
+	}
+
+}
+
+const char *exportextensions[1][2] = {
+	{ "*.csv", "*.CSV" }
+};
+
+void (*_export_fn[])(FILE *) = {
+	_export_csv
+};
+
+void file_export() {
+	if(buffer == NULL) {
+		UpdateStatus("There is nothing to export.");
+	} else {
+		static dialog_t format = {
+			DIALOG_SIMPLE,
+			"What format do you want to export as?",
+			NULL, 2, { "CSV", "Cancel" }
+		};
+
+		int response = DrawDialog(&format);
+
+		if(response < 1) {
+			char *filename = tinyfd_saveFileDialog(
+				"Export file",
+				"",
+				2,
+				exportextensions[response],
+				NULL);
+
+			if(filename) {
+				player_stop();
+
+				FILE *f = diskio_fopen(filename, "wb");
+
+				if(f == NULL) {
+					UpdateStatus("Could open export %s!", basename(filename));
+				} else {
+					_export_fn[response](f);
+					fclose(f);
+
+					UpdateStatus("Exported %s!", basename(filename));
+				}
+			} else {
+				UpdateStatus("No file selected!");
+			}
 		}
 	}
 }

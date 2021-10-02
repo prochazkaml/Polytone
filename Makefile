@@ -11,7 +11,7 @@ menu.o: menu.h sdl.h input.h
 input.o: input.h sdl.h menu.h tracker.h diskio.h
 diskio.o: diskio.h sdl.h tracker.h libs/tinyfiledialogs.h PTPlayer/ptplayer.h
 tracker.o: tracker.h sdl.h PTPlayer/ptplayer.h diskio.h
-menu/file.o: menu/file.h menu/player.h menu.h diskio.h libs/tinyfiledialogs.h
+menu/file.o: menu/file.h menu/player.h menu.h diskio.h tracker.h libs/tinyfiledialogs.h
 menu/player.o: menu/player.h menu.h diskio.h tracker.h sdl.h PTPlayer/ptplayer.h
 menu/edit.o: menu/edit.h menu/player.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h
 menu/track.o: menu/track.h menu.h tracker.h diskio.h PTPlayer/ptplayer.h menu/player.h
