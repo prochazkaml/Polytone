@@ -169,7 +169,7 @@ void InitDialogInput() {
 
 int ParseDialogInput(dialogrender_t *dialog) {
 	SDL_Event event;
-	int i, bx, by, bx2, by2;
+	int i, bx, by, bx2, by2, scancode;
 
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -177,7 +177,11 @@ int ParseDialogInput(dialogrender_t *dialog) {
 				return dialog->dialog->buttons - 1;
 
 			case SDL_KEYDOWN:
-				switch(event.key.keysym.scancode) {
+				scancode = event.key.keysym.scancode;
+
+				if(scancode >= SDL_SCANCODE_1 && scancode <= SDL_SCANCODE_0) {
+					return scancode - SDL_SCANCODE_1;
+				} else switch(scancode) {
 					case SDL_SCANCODE_ESCAPE:
 						return dialog->dialog->buttons - 1;
 
