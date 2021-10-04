@@ -169,7 +169,7 @@ void _export_wav(FILE *file) {
 		samples++;
 	}
 
-	// Generate a valid header
+	// Generate a valid wave header
 
 	fseek(file, 0, SEEK_SET);
 
@@ -187,13 +187,118 @@ void _export_wav(FILE *file) {
 	fput32(samples * 2, file);
 }
 
+void __putevent(FILE *file, int delta, int16_t *data) {
+	fputvlq(delta, file);
+
+	while((*data) != -1) {
+		fputc(*data++, file);
+	}
+}
+
+#define _putevent(...) { __putevent(file, delta, (int16_t[]){__VA_ARGS__, -1}); delta = 0; }
+#define _settempo(t) _putevent(0xFF, 0x51, 0x03, ((t) >> 16) & 0xFF, ((t) >> 8) & 0xFF, (t) & 0xFF)
+
+void _export_mid(FILE *file) {
+	int old, delta = 0, tempo = 0;
+
+	int lastnotes[16] = { 0 };
+
+	songstatus_t *s = malloc(sizeof(songstatus_t));
+	memset(s, 0, sizeof(songstatus_t));
+
+	// Write the data first
+
+	fseek(file, 0x16, SEEK_SET);
+
+	// Set initial tempo
+
+	_settempo(20000000 / 60);
+	s->audiospeed = 60;
+
+	// Initialize all channels to square wave
+	
+	for(int c = 0; c < tracker.s->buf->channels; c++) {
+		_putevent(0xC0 + c, 80);
+	}
+
+	// Parse the tune
+
+	while(1) {
+		old = tracker.s->order * 64 + tracker.s->row;
+
+		PTPlayer_ProcessTick();
+
+		if((tracker.s->order * 64 + tracker.s->row) < old) break;
+
+		// Detect audio speed change (MIDI tempo)
+
+		if(tracker.s->audiospeed != s->audiospeed) {
+			_settempo(20000000 / tracker.s->audiospeed);
+		}
+
+		// Detect notes changes
+
+		for(int c = 0; c < tracker.s->buf->channels; c++) {
+			// Note on
+
+			if(tracker.s->channel[c].ctr == 0 && tracker.s->channel[c].active) {
+				if(lastnotes[c]) _putevent(0x90 + c, lastnotes[c], 0);
+
+				_putevent(0x90 + c, lastnotes[c] = (tracker.s->channel[c].note) + 20, 0x7F);
+			}
+
+			// Pitch change
+
+			if(tracker.s->channel[c].active && (tracker.s->channel[c].freq != s->channel[c].freq)) {
+				
+			}
+
+			// Note off
+
+			if(tracker.s->channel[c].active < s->channel[c].active) {
+				_putevent(0x90 + c, lastnotes[c], 0);
+				lastnotes[c] = 0;
+			}
+
+			tracker.s->channel[c].ctr++;
+		}
+
+		memcpy(s, tracker.s, sizeof(songstatus_t));
+		delta += 6;
+	}	
+
+	// Stop all channels & terminate the track
+
+	for(int c = 0; c < tracker.s->buf->channels; c++) {
+		_putevent(0xB0 + c, 123, 0);
+	}
+
+	_putevent(0xFF, 0x2F, 0x00);
+
+	// Generate a valid SMF header
+
+	int bytes = ftell(file) - 0x16;
+
+	rewind(file);
+
+	fputs("MThd", file);
+	fput32_be(6, file);
+	fput32_be(1, file);
+	fput16_be(120, file);
+	fputs("MTrk", file);
+	fput32_be(bytes, file);
+
+	free(s);
+}
+
 const char *exportextensions[][2] = {
 	{ "*.csv", "*.CSV" },
-	{ "*.wav", "*.WAV" }
+	{ "*.wav", "*.WAV" },
+	{ "*.mid", "*.MID" },
 };
 
 void (*_export_fn[])(FILE *) = {
-	_export_csv, _export_wav
+	_export_csv, _export_wav, _export_mid
 };
 
 void file_export() {
@@ -203,7 +308,7 @@ void file_export() {
 		static dialog_t format = {
 			DIALOG_SIMPLE,
 			"What format do you want to export as?",
-			NULL, 3, { "CSV", "WAV", "Cancel" }
+			NULL, 4, { "CSV", "WAV", "MID", "Cancel" }
 		};
 
 		int response = DrawDialog(&format);
