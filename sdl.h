@@ -2,8 +2,7 @@
 
 #include <SDL2/SDL.h>
 
-#define S_WIDTH 400
-#define S_HEIGHT 240
+extern int VIDEOSCALE, S_WIDTH, S_HEIGHT;
 #define MAX_STR_LEN (S_WIDTH / 8 - 1)
 
 #define STATUS_Y (S_HEIGHT - 8)

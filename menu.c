@@ -13,7 +13,7 @@ void (**submenus_fn[])() = {
 };
 
 menu_t topbar = {
-	0, 0, S_WIDTH, C(1), 5, 
+	0, 0, -1, C(1), 5, 
 	WHITE, STATUS_BG, {
 
 	{ C(1), 0, C(4), C(1), "File" },
@@ -38,7 +38,9 @@ int CheckMenuBoundaries(int mousex, int mousey, menu_t *menu) {
 
 	menuentry_t entry;
 
-	if(mousex >= menu->x && mousex < (menu->x + menu->w) &&
+	int width = (menu->w == -1) ? S_WIDTH : menu->w;
+
+	if(mousex >= menu->x && mousex < (menu->x + width) &&
 	   mousey >= menu->y && mousey < (menu->y + menu->h)) {
 		for(int e = 0; e < menu->entries; e++) {
 			entry = menu->entry[e];
@@ -61,6 +63,8 @@ void DrawMenu(SDL_Surface *surface, menu_t *menu) {
 	menuentry_t entry;
 
 	SDL_Rect rect = { .x = menu->x, .y = menu->y, .w = menu->w, .h = menu->h };
+
+	if(menu->w == -1) rect.w = S_WIDTH;
 
 	SDL_FillRect(surface, &rect, menu->bg);
 

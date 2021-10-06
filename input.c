@@ -42,7 +42,7 @@ kbdshortcut_t shortcuts[] = {
 
 #define n_shortcuts (sizeof(shortcuts) / sizeof(kbdshortcut_t))
 
-int mousex = 0, mousey = S_HEIGHT - 1;
+int mousex = 0, mousey = 0;
 int tbopen = -1, tbsel = -1, e;
 
 void ParseMainInput() {

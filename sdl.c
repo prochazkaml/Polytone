@@ -14,7 +14,7 @@ SDL_Renderer *renderer;
 uint32_t *screen;
 int samples, playing = 0, immnote, immnotedelay = 0, stopdelay = 0;
 
-int VIDEO_SCALE = 2;
+int S_WIDTH = 400, S_HEIGHT = 240, VIDEO_SCALE = 2;
 
 SDL_AudioSpec sdl_audio = {
 	.freq = 44100,
