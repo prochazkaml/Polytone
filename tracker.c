@@ -485,7 +485,8 @@ void DrawRow(int y, int order, int row) {
 	}
 }
 
-#define TRACKERWIN_Y 48
+#define TRACKERWIN_Y (48 + (S_HEIGHT % 8))
+#define CHINFO_Y (13 + (S_HEIGHT % 8) / 2)
 #define BARWIDTH 2
 #define ORDERWIDTH 48
 #define TRACKERWIN_W (S_WIDTH - ORDERWIDTH)
@@ -513,7 +514,7 @@ void RenderTracker() {
 			PIXEL(i, MIDDLEROW_Y) += 0x303030;
 		}
 
-		Printf(8, 23, WHITE, "%02X", buffer->ordertable[tracker.order]);
+		Printf(8, CHINFO_Y + 10, WHITE, "%02X", buffer->ordertable[tracker.order]);
 
 		if(playing) {
 			if(!stopdelay) {
@@ -525,8 +526,8 @@ void RenderTracker() {
 
 			for(int c = 0; c < buffer->channels; c++) {
 				int color = tracker.s->channel[c].enabled ? WHITE : 0xFF808080;
-				Printf(36 + c * 64, 13, color, "Ch %d", c + 1);
-				Printf(36 + c * 64, 23, color, tracker.s->channel[c].active ? "%d Hz" : "-", tracker.s->channel[c].freq);
+				Printf(36 + c * 64, CHINFO_Y, color, "Ch %d", c + 1);
+				Printf(36 + c * 64, CHINFO_Y + 10, color, tracker.s->channel[c].active ? "%d Hz" : "-", tracker.s->channel[c].freq);
 
 				int ctr = tracker.s->channel[c].ctr;
 
@@ -538,7 +539,7 @@ void RenderTracker() {
 
 				for(int x = 0; x < tracker.ch_ctr[c]; x++) {
 					for(int y = 0; y < 7; y++) {
-						PIXEL(37 + c * 64 + x * 2, 33 + y) = 
+						PIXEL(37 + c * 64 + x * 2, CHINFO_Y + 20 + y) = 
 							(x < 14) ? 0xFF00FF00 : ((x < 21) ? 0xFF00FFFF : 0xFF0000FF);
 					}
 				}
@@ -548,8 +549,8 @@ void RenderTracker() {
 			}
 		} else {
 			for(int c = 0; c < buffer->channels; c++) {
-				Printf(36 + c * 64, 13, WHITE, "Ch %d", c + 1);
-				Printf(36 + c * 64, 23, 0xFF808080, "-", c + 1);
+				Printf(36 + c * 64, CHINFO_Y, WHITE, "Ch %d", c + 1);
+				Printf(36 + c * 64, CHINFO_Y + 10, 0xFF808080, "-", c + 1);
 			}
 
 			if(!tracker.selected) {
@@ -602,9 +603,9 @@ void RenderTracker() {
 		SDL_FillRect(surface, &order, 0xFF222222);
 		SDL_FillRect(surface, &orderbar, WHITE);
 
-		Printf(TRACKERWIN_W + 5, 13, WHITE, "Order");
-		Printf(TRACKERWIN_W + 5, 23, WHITE, "%02X/%02X", tracker.order, buffer->orders);
-		Printf(TRACKERWIN_W + 5, 33, WHITE, "Oct:%d", tracker.octave);
+		Printf(TRACKERWIN_W + 5, CHINFO_Y, WHITE, "Order");
+		Printf(TRACKERWIN_W + 5, CHINFO_Y + 10, WHITE, "%02X/%02X", tracker.order, buffer->orders);
+		Printf(TRACKERWIN_W + 5, CHINFO_Y + 20, WHITE, "Oct:%d", tracker.octave);
 
 		int order = tracker.order - (S_HEIGHT - 8 - TRACKERWIN_Y) / 16;
 
