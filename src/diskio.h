@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "PTPlayer/ptplayer.h"
+#include "libs/PTPlayer/ptplayer.h"
 
 #ifdef _WIN32
 #define diskio_fopen(file, mode) _wfopen(tinyfd_utf8to16(file), L##mode)

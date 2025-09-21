@@ -1,39 +1,36 @@
-.DEFAULT_GOAL := polytone
+.DEFAULT_GOAL := build/polytone
 .PHONY: clean
 
 objects = main.o sdl.o menu.o input.o diskio.o tracker.o \
 	menu/file.o menu/player.o menu/edit.o menu/track.o menu/help.o \
-	libs/lz4.o libs/tinyfiledialogs.o PTPlayer/ptplayer.o
+	libs/lz4.o libs/tinyfiledialogs.o libs/PTPlayer/ptplayer.o
 
-main.o: sdl.h input.h diskio.h
-sdl.o: sdl.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h assets/font.h assets/intro.h assets/icon.h libs/lz4.h
-menu.o: menu.h sdl.h input.h
-input.o: input.h sdl.h menu.h tracker.h diskio.h
-diskio.o: diskio.h sdl.h tracker.h libs/tinyfiledialogs.h PTPlayer/ptplayer.h
-tracker.o: tracker.h sdl.h PTPlayer/ptplayer.h diskio.h
-menu/file.o: menu/file.h menu/player.h menu.h diskio.h tracker.h libs/tinyfiledialogs.h
-menu/player.o: menu/player.h menu.h diskio.h tracker.h sdl.h PTPlayer/ptplayer.h
-menu/edit.o: menu/edit.h menu/player.h menu.h diskio.h tracker.h PTPlayer/ptplayer.h
-menu/track.o: menu/track.h menu.h tracker.h diskio.h PTPlayer/ptplayer.h menu/player.h
-menu/help.o: menu/help.h menu.h
-libs/tinyfiledialogs.o: libs/tinyfiledialogs.h
-libs/lz4.o: libs/lz4.h
-PTPlayer/ptplayer.o: PTPlayer/ptplayer.h
+objectdests = $(patsubst %.o,build/%.o,$(objects))
 
-polytone: CC = gcc
-polytone: $(objects)
-	$(CC) $(objects) -lSDL2 -lm -o $@
+headers = $(sort $(shell find src -name '*.h'))
 
-polytone.exe: CC = x86_64-w64-mingw32-gcc
-polytone.exe: $(objects)
-	$(CC) $(objects) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -Wl,-subsystem,windows -o $@
+force_rebuild_files = \
+	Makefile \
+	$(headers)
 
-polytonedbg.exe: CC = x86_64-w64-mingw32-gcc
-polytonedbg.exe: $(objects)
-	$(CC) $(objects) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -o $@
+build/%.o: src/%.c $(force_rebuild_files)
+	@mkdir -p $(@D)
+	$(CC) -c -O3 -o $@ $<
+
+build/polytone: CC = gcc
+build/polytone: $(objectdests)
+	$(CC) $(objectdests) -lSDL2 -lm -o $@
+
+build/polytone.exe: CC = x86_64-w64-mingw32-gcc
+build/polytone.exe: $(objectdests)
+	$(CC) $(objectdests) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -Wl,-subsystem,windows -o $@
+
+build/polytonedbg.exe: CC = x86_64-w64-mingw32-gcc
+build/polytonedbg.exe: $(objectdests)
+	$(CC) $(objectdests) -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -o $@
 
 clean:
-	rm -f polytone *.exe *zip $(objects)
+	rm -f polytone *.exe *zip $(objectdests)
 
-pkg_windows: polytone.exe
-	zip polytone.zip -r polytone.exe SDL2.dll examples
+pkg_windows: build/polytone.exe
+	zip build/polytone.zip -r build/polytone.exe SDL2.dll examples

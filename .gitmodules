@@ -1,3 +1,3 @@
-[submodule "PTPlayer"]
-	path = PTPlayer
+[submodule "src/libs/PTPlayer"]
+	path = src/libs/PTPlayer
 	url = https://github.com/prochazkaml/PTPlayer
