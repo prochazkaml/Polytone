@@ -15,7 +15,7 @@ force_rebuild_files = \
 
 build/%.o: src/%.c $(force_rebuild_files)
 	@mkdir -p $(@D)
-	$(CC) -c -O3 -o $@ $<
+	$(CC) -c -O3 -flto -o $@ $<
 
 build/polytone: CC = gcc
 build/polytone: $(objectdests)
