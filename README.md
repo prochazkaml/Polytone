@@ -133,4 +133,3 @@ make pkg_windows
 - Write the manual
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
 - Adjustable window size
-- Implement exporting to MIDI (with functioning effects!)

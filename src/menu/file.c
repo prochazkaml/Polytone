@@ -5,6 +5,7 @@
 #include "../libs/tinyfiledialogs.h"
 #include <string.h>
 #include <libgen.h>
+#include <math.h>
 
 menu_t submenu_file = {
 	C(1), C(1), C(16), C(6), 6,
@@ -197,11 +198,25 @@ void __putevent(FILE *file, int delta, int16_t *data) {
 
 #define _putevent(...) { __putevent(file, delta, (int16_t[]){__VA_ARGS__, -1}); delta = 0; }
 #define _settempo(t) _putevent(0xFF, 0x51, 0x03, ((t) >> 16) & 0xFF, ((t) >> 8) & 0xFF, (t) & 0xFF)
+#define _setsemitonerange(c, t) { \
+	_putevent(0xB0 + c, 101, 0); \
+	_putevent(0xB0 + c, 100, 0); \
+	_putevent(0xB0 + c, 6, t); \
+	_putevent(0xB0 + c, 38, 0); \
+}
+#define _pitchbend(c, v) { \
+	if(lastbends[c] != v) { \
+		_putevent(0xE0 + c, ((v) & 0x7F), (((v) >> 7) & 0x7F)); \
+		lastbends[c] = v; \
+	} \
+}
 
 void _export_mid(FILE *file) {
 	int old, delta = 0, tempo = 0;
 
 	int lastnotes[16] = { 0 };
+	int notefreqs[16] = { 0 };
+	int lastbends[16] = { 8192 };
 
 	songstatus_t *s = malloc(sizeof(songstatus_t));
 	memset(s, 0, sizeof(songstatus_t));
@@ -217,8 +232,11 @@ void _export_mid(FILE *file) {
 
 	// Initialize all channels to square wave
 	
+	int semitone_range = 96;
+
 	for(int c = 0; c < tracker.s->buf->channels; c++) {
 		_putevent(0xC0 + c, 80);
+		_setsemitonerange(c, semitone_range);
 	}
 
 	// Parse the tune
@@ -245,12 +263,24 @@ void _export_mid(FILE *file) {
 				if(lastnotes[c]) _putevent(0x90 + c, lastnotes[c], 0);
 
 				_putevent(0x90 + c, lastnotes[c] = (tracker.s->channel[c].note) + 20, 0x7F);
+				_pitchbend(c, 8192);
+
+				notefreqs[c] = tracker.s->channel[c].freq;
+				s->channel[c].freq = tracker.s->channel[c].freq;
 			}
 
 			// Pitch change
 
 			if(tracker.s->channel[c].active && (tracker.s->channel[c].freq != s->channel[c].freq)) {
-				
+				float base = notefreqs[c];
+				float newfreq = tracker.s->channel[c].freq;
+				float ratio = newfreq / base;
+				float semitones = log2(ratio) * 12.0;
+				float semitone_units = 8192.0 / ((float) semitone_range);
+				int bend_units = 8192 + (int) (semitones * semitone_units);
+
+				_pitchbend(c, bend_units);
+				s->channel[c].freq = tracker.s->channel[c].freq;
 			}
 
 			// Note off
