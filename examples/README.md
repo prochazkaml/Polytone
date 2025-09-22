@@ -12,6 +12,10 @@ Originally used for testing the new features of Polytone (specifically, the high
 
 The original SID file can be found in the [HVSC](https://www.hvsc.c64.org/), under `/MUSICIANS/T/Tracker/Tracker_01.sid`.
 
+## e1m1.pol
+
+A single-channel re-creation of the famous E1M1 tune from the original Doom from 1993.
+
 ## tdu.pol
 
 A conversion of some song I heard in a DOS cracktro.
