@@ -101,7 +101,7 @@ brew install sdl2
 git clone --recurse-submodules https://github.com/prochazkaml/Polytone
 cd Polytone
 make
-./polytone
+./build/polytone
 ```
 
 It's as simple as that. On macOS, make sure to install [Homebrew](https://brew.sh/) first.
@@ -121,7 +121,7 @@ cp SDL2-2.0.16/x86_64-w64-mingw32/bin/SDL2.dll .
 rm -rf SDL*
 
 # Start the build
-make polytone.exe
+make build/polytone.exe
 
 # To generate a GitHub release, run:
 make pkg_windows
