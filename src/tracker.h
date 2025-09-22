@@ -2,7 +2,7 @@
 #include "libs/PTPlayer/ptplayer.h"
 
 typedef struct {
-	int row, order, channel, column, octave, update;
+	int row, order, channel, column, xscroll, octave, update;
 	int selected, selrow, selchannel, selcolumn;
 	int _selrow0, _selrow1, _selchannel0, _selchannel1, _selcolumn0, _selcolumn1;
 	songstatus_t *s;

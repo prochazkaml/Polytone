@@ -130,7 +130,6 @@ make pkg_windows
 ## To-do list
 
 - Add undo/redo
-- Add support for >= 6 channels (drawing is broken, horizontal scrolling will have to be implemented)
 - Write the manual
 - bugfix: If there are diacritics in the path (on Windows), then the program won't load from cmdline
 - Adjustable window size

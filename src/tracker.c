@@ -3,7 +3,10 @@
 #include "diskio.h"
 #include <stdio.h>
 
-tracker_t tracker;
+#define min(x, y) ((x) > (y) ? (y) : (x))
+#define max(x, y) ((x) < (y) ? (y) : (x))
+
+tracker_t tracker = { 0 };
 
 const uint8_t notekeys[] = {
 	SDL_SCANCODE_Z, SDL_SCANCODE_S,
@@ -171,11 +174,19 @@ int IsRowInSelected(int row) {
 }
 
 int GetSelectedLeftX() {
-	return 32 + tracker._selchannel0 * 64 + offsetstart[tracker._selcolumn0];
+	if(tracker._selchannel0 < tracker.xscroll) {
+		return 32;
+	}
+
+	return 32 + (tracker._selchannel0 - tracker.xscroll) * 64 + offsetstart[tracker._selcolumn0];
 }
 
 int GetSelectedRightX() {
-	return 32 + tracker._selchannel1 * 64 + offsetend[tracker._selcolumn1];
+	if(tracker._selchannel1 > tracker.xscroll + 4) {
+		return 32 + 5 * 64;
+	}
+
+	return 32 + (tracker._selchannel1 - tracker.xscroll) * 64 + offsetend[tracker._selcolumn1];
 }
 
 int DeleteSelectedBox() {
@@ -265,6 +276,7 @@ void ParseKey(int mod, int scancode) {
 						tracker.channel--;
 						if(tracker.channel < 0) tracker.channel = buffer->channels - 1;
 					}
+					
 				}
 
 				break;
@@ -450,10 +462,12 @@ const uint32_t effectcolors[16] = {
 void DrawRow(int y, int order, int row) {
 	Printf(8, y, WHITE, "%02X", row);
 
-	for(int c = 0; c < buffer->channels; c++) {
-		int n = buffer->data[buffer->ordertable[order]][row][c].note;
-		int e = buffer->data[buffer->ordertable[order]][row][c].effect;
-		int v = buffer->data[buffer->ordertable[order]][row][c].effectval;
+	for(int c = 0; c < min(buffer->channels, 5); c++) {
+		int sc = c + tracker.xscroll;
+
+		int n = buffer->data[buffer->ordertable[order]][row][sc].note;
+		int e = buffer->data[buffer->ordertable[order]][row][sc].effect;
+		int v = buffer->data[buffer->ordertable[order]][row][sc].effectval;
 
 		if(n == 127) {
 			Printf(36 + c * 64, y, 0xFF8080FF, "OFF");
@@ -516,6 +530,21 @@ void RenderTracker() {
 
 		Printf(8, CHINFO_Y + 10, WHITE, "%02X", buffer->ordertable[tracker.order]);
 
+		if(tracker.channel < tracker.xscroll) {
+			tracker.xscroll = tracker.channel;
+		}
+
+		if(tracker.channel > tracker.xscroll + 4) {
+			tracker.xscroll = tracker.channel - 4;
+		}
+
+		for(int c = 0; c < min(buffer->channels, 5); c++) {
+			int sc = c + tracker.xscroll;
+			int color = tracker.s->channel[sc].enabled ? WHITE : 0xFF808080;
+			Printf(36 + c * 64, CHINFO_Y, color, "Ch %d", sc + 1);
+			Printf(36 + c * 64, CHINFO_Y + 10, playing ? color : 0xFF808080, tracker.s->channel[sc].active && playing ? "%d Hz" : "-", tracker.s->channel[sc].freq);
+		}
+
 		if(playing) {
 			if(!stopdelay) {
 				UpdateStatus("Playing %d.%02ds (speed %d @ %d Hz)...",
@@ -525,10 +554,6 @@ void RenderTracker() {
 			tracker.selected = 0;
 
 			for(int c = 0; c < buffer->channels; c++) {
-				int color = tracker.s->channel[c].enabled ? WHITE : 0xFF808080;
-				Printf(36 + c * 64, CHINFO_Y, color, "Ch %d", c + 1);
-				Printf(36 + c * 64, CHINFO_Y + 10, color, tracker.s->channel[c].active ? "%d Hz" : "-", tracker.s->channel[c].freq);
-
 				int ctr = tracker.s->channel[c].ctr;
 
 				if(ctr != tracker.old_ctr[c] && tracker.ch_ctr[c] < 14) tracker.ch_ctr[c] = 14;
@@ -536,33 +561,34 @@ void RenderTracker() {
 				if(tracker.ch_ctr[c] < 0) tracker.ch_ctr[c] = 0;
 
 				if(ctr < tracker.old_ctr[c]) tracker.ch_ctr[c] = 27;
+			}
 
-				for(int x = 0; x < tracker.ch_ctr[c]; x++) {
+			for(int c = 0; c < min(buffer->channels, 5); c++) {
+				int sc = c + tracker.xscroll;
+
+				for(int x = 0; x < tracker.ch_ctr[sc]; x++) {
 					for(int y = 0; y < 7; y++) {
 						PIXEL(37 + c * 64 + x * 2, CHINFO_Y + 20 + y) = 
 							(x < 14) ? 0xFF00FF00 : ((x < 21) ? 0xFF00FFFF : 0xFF0000FF);
 					}
 				}
-
-				tracker.ch_ctr[c]--;
-				tracker.old_ctr[c] = ctr;
 			}
-		} else {
+
 			for(int c = 0; c < buffer->channels; c++) {
-				Printf(36 + c * 64, CHINFO_Y, WHITE, "Ch %d", c + 1);
-				Printf(36 + c * 64, CHINFO_Y + 10, 0xFF808080, "-", c + 1);
+				tracker.ch_ctr[c]--;
+				tracker.old_ctr[c] = tracker.s->channel[c].ctr;
 			}
+		} else if(!tracker.selected) {
+			for(int y = MIDDLEROW_Y; y < MIDDLEROW_Y + 8; y++) {
+				int sc = tracker.channel - tracker.xscroll;
 
-			if(!tracker.selected) {
-				for(int y = MIDDLEROW_Y; y < MIDDLEROW_Y + 8; y++) {
-					for(int x = 0; x < 2; x++) {
-						PIXEL(x + 32 + tracker.channel * 64, y) = WHITE;
-						PIXEL(x + 94 + tracker.channel * 64, y) = WHITE;
-					}
+				for(int x = 0; x < 2; x++) {
+					PIXEL(x + 32 + sc * 64, y) = WHITE;
+					PIXEL(x + 94 + sc * 64, y) = WHITE;
+				}
 
-					for(int x = offsetstart[tracker.column]; x < offsetend[tracker.column]; x++) {
-						PIXEL(x + 32 + tracker.channel * 64, y) += 0x202020;
-					}
+				for(int x = offsetstart[tracker.column]; x < offsetend[tracker.column]; x++) {
+					PIXEL(x + 32 + sc * 64, y) += 0x202020;
 				}
 			}
 		}
