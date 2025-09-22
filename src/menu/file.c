@@ -205,9 +205,10 @@ void __putevent(FILE *file, int delta, int16_t *data) {
 	_putevent(0xB0 + c, 38, 0); \
 }
 #define _pitchbend(c, v) { \
-	if(lastbends[c] != v) { \
-		_putevent(0xE0 + c, ((v) & 0x7F), (((v) >> 7) & 0x7F)); \
-		lastbends[c] = v; \
+	int _bend = v; if(_bend < 0) _bend = 0; else if(_bend > 16383) _bend = 16383; \
+	if(lastbends[c] != _bend) { \
+		_putevent(0xE0 + c, (_bend & 0x7F), ((_bend >> 7) & 0x7F)); \
+		lastbends[c] = _bend; \
 	} \
 }
 
