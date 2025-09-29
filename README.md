@@ -116,9 +116,7 @@ cd Polytone
 # One-time setup
 wget https://www.libsdl.org/release/SDL2-devel-2.0.16-mingw.tar.gz -O SDL.tar.gz
 tar -xf SDL.tar.gz
-sudo rsync -a SDL2-2.0.16/x86_64-w64-mingw32/ /usr/x86_64-w64-mingw32
-cp SDL2-2.0.16/x86_64-w64-mingw32/bin/SDL2.dll .
-rm -rf SDL*
+export SDL_MINGW_PATH=$(PWD)/SDL2-2.0.16/x86_64-w64-mingw32
 
 # Start the build
 make build/polytone.exe
