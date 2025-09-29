@@ -29,6 +29,7 @@ endif
 build/polytone.exe: CC = x86_64-w64-mingw32-gcc -I$(SDL_MINGW_PATH)/include
 build/polytone.exe: check_sdl_mingw_path $(objectdests)
 	$(CC) $(objectdests) -L$(SDL_MINGW_PATH)/lib -lmingw32 -lSDL2 -lSDL2main -lm -lcomdlg32 -lole32 -Wl,-subsystem,windows -o $@
+	cp $(SDL_MINGW_PATH)/bin/SDL2.dll build/
 
 build/polytonedbg.exe: CC = x86_64-w64-mingw32-gcc
 build/polytonedbg.exe: $(objectdests)
@@ -42,4 +43,4 @@ clean:
 	rm -rf build
 
 pkg_windows: build/polytone.exe
-	zip build/polytone.zip -r build/polytone.exe SDL2.dll examples
+	zip build/polytone.zip -r build/polytone.exe build/SDL2.dll examples
