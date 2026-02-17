@@ -1,3 +1,7 @@
+# Moved over to [Codeberg](https://codeberg.org/prochazkaml/Polytone).
+
+---
+
 # Polytone
 A modern re-implementation of the MONOTONE tracker with many enhancements.
 
